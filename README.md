@@ -2,12 +2,12 @@
 基于rtsf测试框架，关键字驱动测试http/https等api
 
 
-## 用例模板，基于rtsf
+## 编写测试用例，模板基于rtsf
 
 > 变量引用-> $var    关键字(函数)引用-> ${function}
 
 ```
-# 示例如：
+# 示例如   test.yml：
 - project:
     name: xxx系统
     module: 登陆模块-功能测试
@@ -78,8 +78,25 @@ test_var = "hello rtsf."
 def test_func():
     return "nihao rtsf."
  
-``` 
-执行用例的时候，可以使用 变量引用 或者关键字引用的方法，调用，如上的函数和变量
+```
+
+执行用例的时候，可以使用 变量引用 或者关键字引用的方法，调用，自定义的函数和变量
+
+## 执行测试用例
+
+执行命令：
+
+```
+#示例，执行 test.yml测试用例
+hdriver test.yml
+#或者
+httpdriver test.yml
+
+```
+## 测试报告及日志
+
+> 执行结束后，测试用例所在路径，就是report生成的路径
+
 
 
 
