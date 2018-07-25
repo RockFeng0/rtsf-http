@@ -44,4 +44,10 @@ setup(
         install_requires=install_requires,
         dependency_links=dependency_links,
         extras_require={},
+        entry_points={
+        'console_scripts': [
+            'httpdriver=httpdriver.cli:main_hrun',
+            'hdriver=httpdriver.cli:main_hrun',
+        ]
+    },
     )
