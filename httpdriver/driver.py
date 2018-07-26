@@ -19,7 +19,7 @@ Provide a function for the automation test
 '''
 
 
-import re
+import re,json
 
 from rtsf.p_executer import Runner
 from rtsf.p_common import CommonUtils,ModuleUtils
@@ -70,21 +70,20 @@ class Driver(Runner):
                 req = parser.get_bind_function(method.upper())
                 if not req:
                     raise FunctionNotFound("Not found method('%s')" %method)
+                self.tracer.step("requests url -> \n\t{} {}".format(method.upper(), url))
                                     
                 head = parser.eval_content_with_bind_actions(step["request"].get("headers"))
                 head = head if head else {}
-                self.tracer.step("requests head -> \n\t{}".format(head))
+                self.tracer.step("requests head -> \n\t{}".format(json.dumps(head,indent=4, separators=(',', ': '))))
                 set_head = parser.get_bind_function("SetReqHead")
                  
                 data = parser.eval_content_with_bind_actions(step["request"].get("data"))
                 data = data if data else {}
-                self.tracer.step("requests body -> \n\t{}".format(data))
+                self.tracer.step("requests body -> \n\t{}".format(json.dumps(data,indent=4, separators=(',', ': '))))
                 set_data =parser.get_bind_function("SetReqData")
              
                 set_head(**head)
-                set_data(**data)
-                
-                self.tracer.step("requests:\n\t{} {}".format(method.upper(), url))
+                set_data(**data)                
                 req(url)
              
                 resp_headers = parser.get_bind_function("GetRespHeaders")()
@@ -117,5 +116,6 @@ class Driver(Runner):
         except Exception as e:
             self.tracer.error("%s\t%s" %(e,CommonUtils.get_exception_error()))
         finally:
-            self.tracer.normal("globals:\n\t{}".format(parser._variables)) 
+#             self.tracer.normal("globals:\n\t{}".format(parser._variables)) 
             self.tracer.stop()
+            
