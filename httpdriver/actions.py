@@ -122,6 +122,10 @@ class WebHttp():
         return cls.glob.get(name)
     
     @classmethod
+    def PopVar(cls, name):
+        return cls.glob.pop(name, None)
+    
+    @classmethod
     def LoginAuth(cls,username,password,auth):
         '''
         :auth: [basic/digest] encrypt to base64 or md5
@@ -245,8 +249,10 @@ class WebHttp():
         return dict(cls.__resp.cookies.items())
 
     @classmethod
-    def GetRespHeaders(cls):
+    def GetRespHeaders(cls, name = None):
         ''' response headers '''
+        if name:
+            return cls.__resp.headers.get(name)
         return cls.__resp.headers
     
     @classmethod
@@ -282,8 +288,10 @@ class WebHttp():
         return cls.__resp.request.url
     
     @classmethod
-    def GetReqHeaders(cls):
+    def GetReqHeaders(cls, name = None):
         ''' request headers '''
+        if name:
+            return cls.__resp.request.headers.get(name)
         return cls.__resp.request.headers
     
     @classmethod

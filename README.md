@@ -42,7 +42,7 @@ DyJsonData(name,sequence)                   # -> resp.text or resp.content 返�
 DyStrData(name,regx,index=0)                # -> resp.text or resp.content 返回html/xml等格式时， 依据正则regx和下标index，保存至变量name                                           
 
 GetReqData()                                # ->resp.request.body
-GetReqHeaders()                             # ->resp.request.headers
+GetReqHeaders(name                          # ->resp.request.headers;默认name=None,返回所有的headers; 如果指定了name，那么返回headers中指定name的值；
 GetReqMethod()                              # ->resp.request.method
 GetReqUrl()                                 # ->resp.request.url
 
@@ -52,11 +52,12 @@ GetRespText                                 # ->resp.text
 GetRespCookie                               # ->resp.cookies   返回字典
 GetRespElapsed                              # ->resp.elapsed
 GetRespEncoding                             # ->resp.encoding
-GetRespHeaders                              # ->resp.headers
+GetRespHeaders(name)                        # ->resp.headers; 默认name=None,返回所有的headers; 如果指定了name，那么返回headers中指定name的值；
 GetRespReason                               # ->resp.reason
 
-SetVar(name, value)
-GetVar(name)
+SetVar(name, value)                         # -> 设置变量
+GetVar(name)                                # -> 从变量空间中，获取变量的值
+PopVar(name)                                # -> 从变量空间中，获取变量的值，然后删除该变量
 Upload(url, upload_files, **formdata)       # -> e.g.  Upload('http://127.0.0.1/filestorage/httpUploadFile',
                                                             [r'd:\auto\buffer\t.jpg',r'd:\auto\buffer\t.zip'],
                                                             dirType = 1, unzip = 0)
