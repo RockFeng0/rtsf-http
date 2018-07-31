@@ -263,8 +263,9 @@ class WebHttp():
     @classmethod
     def GetRespText(cls):
         ''' Content of the response, in unicode '''
-        cls.__resp.encoding = requests.utils.get_encodings_from_content(cls.__resp.text)
+#         cls.__resp.encoding = requests.utils.get_encodings_from_content(cls.__resp.text)
 #         cls.__resp.encoding = cls.__resp.apparent_encoding
+        cls.__resp.encoding = None
         return cls.__resp.text
     
     @classmethod

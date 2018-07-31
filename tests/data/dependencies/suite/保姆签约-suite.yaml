@@ -1,0 +1,58 @@
+- project:
+    def: open_baidu_suite()
+    
+- case:
+    # id 必填
+    id: ATP-2
+    # desc 必填
+    desc: suite测试用例-模板（与testset测试用例字段相同）
+    
+    # responsible 选填
+    responsible: 罗科峰
+    
+    # tester 选填
+    tester: 罗科峰
+    
+    # pre_command 选填
+    pre_command:
+        - Set(passwd = "123456")
+    
+    # steps 必填
+    steps:
+        # request 测试api或者 http /https 时使用
+        - request:
+            url: https://www.baidu.com
+            method: GET
+            headers:
+            data:
+        
+        # webdriver 测试web ui 时使用
+        - webdriver:
+            by: css
+            value: "#username"
+            index: 0
+            timeout: 10
+            action: ${sendkey($username)}
+        - webdriver:
+            action: ${refresh}
+        
+        # mobiledriver 测试android UI 时使用
+        - mobiledriver:
+            action: ${refresh}
+        
+        # wpfdriver 测试pc wpf技术的客户端 ui 时使用    
+        - wpfdriver:
+            action: 
+        
+        # mfcdriver 测试pc mfc技术的客户端 ui 时使用    
+        - mfcdriver:
+            actiion:
+    
+    # post_command 选填
+    post_command:
+        - Set(passwd = "123456")
+    
+    # verify 选填
+    verify:
+        - VerifyCode("200")
+        

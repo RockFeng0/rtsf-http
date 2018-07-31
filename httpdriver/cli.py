@@ -46,7 +46,7 @@ def main_hrun():
     args = parser.parse_args()
     logger.setup_logger(args.log_level, args.log_file)    
     
-    runner = TestRunner(runner = Driver()).run(args.case_file)
+    runner = TestRunner(runner = Driver).run(args.case_file)
     html_report = runner.gen_html_report()
     color_print("report: {}".format(html_report))
 
