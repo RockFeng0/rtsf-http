@@ -1,0 +1,18 @@
+# suite_test2.yaml
+- project:
+    def: suite2($keyword)
+
+- case:
+    id: ATP-1
+    desc: 打开bing
+    api: api_3()
+    
+- case:
+    id: ATP-2
+    desc: 打开百度
+    api: api_1()
+
+- case:
+    id: ATP-3
+    desc: 搜索key
+    api: api_2($keyword)

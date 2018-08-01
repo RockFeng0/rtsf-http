@@ -27,13 +27,16 @@ from rtsf.p_testcase import TestCaseParser
 from rtsf.p_applog import logger
 from httpdriver.driver import Driver 
 
+# 分层用例       
+case_file1 = r'data\test_case.yaml'
+
+# 用例模型
+case_file2 = r'data\case_model.yaml'
 
 class TestTestRunner(unittest.TestCase):
     
     def test_run_and_gen_hetml_report(self):
 #         logger.setup_logger("debug")
-        case_file1 = r'data\case_mode_with_api&suitel.yaml'
-        case_file2 = r'data\case_model.yaml'
         
         runner = TestRunner(runner = Driver).run(case_file2)        
         html_report = runner.gen_html_report()
@@ -55,7 +58,7 @@ class TestTestRunner(unittest.TestCase):
 if __name__ == "__main__":
 #     unittest.main()
 #     logger.setup_logger("debug")
-    runner = TestRunner(runner = Driver).run(r'data\case_mode_with_api&suitel.yaml')
+    runner = TestRunner(runner = Driver).run(case_file1)
     html_report = runner.gen_html_report()
     
     

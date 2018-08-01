@@ -1,1 +1,0 @@
-- project:    name: xxx系统    module: 登陆模块-功能测试    - case:    id: ATP-1    desc: 打开百度-api    api: open_baidu_api()- case:    id: ATP-2    desc: 打开百度-suite    suite: open_baidu_suite()

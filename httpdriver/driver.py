@@ -51,7 +51,7 @@ class Driver(Runner):
             self._Actions.WebHttp.glob.update(globregx)
                              
             self.tracer.normal("**** precommand")
-            precommand = testcase_dict.get("pre_command",[])        
+            precommand = testcase_dict.get("pre_command",[])    
             parser.eval_content_with_bind_actions(precommand)
             for i in precommand:
                 self.tracer.step("{}".format(i))

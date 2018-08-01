@@ -1,0 +1,14 @@
+# 测试用例 test_case.yaml：
+- project:
+    name: 分层用例
+    module: 示例场景
+    
+- case:
+    id: case1
+    desc: 示例场景1
+    suite: suite1(hello)
+        
+- case:
+    id: case2
+    desc: 示例场景2
+    suite: suite2(hello)

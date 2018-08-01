@@ -1,0 +1,28 @@
+# api_test.yaml
+
+- api:
+    def: api_1()
+    steps:
+        - request:
+            url: https://www.baidu.com          
+            method: GET    
+    verify:
+        - ${VerifyCode(200)}
+
+- api:
+    def: api_2($keyword)
+    steps:
+        - request:
+            url: https://www.baidu.com/s?wd=$keyword    
+            method: GET    
+    verify:
+        - ${VerifyCode(200)}
+        
+- api:
+    def: api_3()
+    steps:
+        - request:
+            url: https://cn.bing.com   
+            method: GET    
+    verify:
+        - ${VerifyCode(200)}
