@@ -90,7 +90,7 @@ class Driver(Runner):
                 self.tracer.step("response headers: \n\t{}".format(resp_headers))
              
                 resp_text = parser.get_bind_function("GetRespText")()
-                self.tracer.step("response body: \n\t{}".format(resp_text))                                 
+                self.tracer.step(u"response body: \n\t{}".format(resp_text))                                 
             
             self.tracer.normal("**** postcommand")
             postcommand = testcase_dict.get("post_command", [])        
@@ -103,9 +103,9 @@ class Driver(Runner):
             result = parser.eval_content_with_bind_actions(verify)
             for v, r in zip(verify,result):
                 if r == False:
-                    self.tracer.fail("{} --> {}".format(v,r))
+                    self.tracer.fail(u"{} --> {}".format(v,r))
                 else:
-                    self.tracer.ok("{} --> {}".format(v,r))
+                    self.tracer.ok(u"{} --> {}".format(v,r))
                         
         except KeyError as e:
             self.tracer.error("Can't find key[%s] in your testcase." %e)

@@ -1,6 +1,6 @@
 # suite_test2.yaml
 - project:
-    def: suite2($keyword)
+    def: suite2($keyword,$password,$username)
 
 - case:
     id: ATP-1

@@ -33,6 +33,7 @@ case_file1 = r'data\test_case.yaml'
 # 用例模型
 case_file2 = r'data\case_model.yaml'
 
+
 class TestTestRunner(unittest.TestCase):
     
     def test_run_and_gen_hetml_report(self):
@@ -53,11 +54,10 @@ class TestTestRunner(unittest.TestCase):
         self.assertEqual(os.path.isfile(html_report[0]), True)
         
         
-        
-        
 if __name__ == "__main__":
 #     unittest.main()
 #     logger.setup_logger("debug")
+#     runner = TestRunner(runner = Driver).run(r"C:\d_disk\auto\buffer\test\rtsf-http-test\.yaml")
     runner = TestRunner(runner = Driver).run(case_file1)
     html_report = runner.gen_html_report()
     

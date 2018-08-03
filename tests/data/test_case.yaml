@@ -11,4 +11,4 @@
 - case:
     id: case2
     desc: 示例场景2
-    suite: suite2(hello)
+    suite: suite2(hello,123456,luokefeng)
