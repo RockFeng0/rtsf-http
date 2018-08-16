@@ -187,22 +187,32 @@ class WebHttp():
                 fd.write(cls.__resp.text.encode(cls.__resp.encoding))   
     
     @classmethod
-    def Upload(cls,url, upload_files, **formdata):
+    def Upload(cls,url, upload_files_params, **formdata):
         '''usage:
             url = 'http://192.168.102.241:8008/dls/FileStorage/httpUploadFile'
-            upload_files = [r'd:\auto\buffer\t.jpg',r'd:\auto\buffer\t.zip']
+            upload_files_params = {
+                'pic1': r'C:\d_disk\auto\buffer\800x600.png',
+                'pic2': "",
+                'pic3': "",
+                'pic4': "",
+                'pic5': "",
+                'pic6': "",
+                'pic7': "",
+                'pic8': ""
+            }
             upload(url, upload_files, dirType = 1, unzip = 0)
         '''                
         multiple_files = {}
-        for f in upload_files:
-            if not os.path.isfile(f):
+        for param_name, upload_file in upload_files_params.items():
+            if not os.path.isfile(upload_file):
+                multiple_files[param_name] = ("","")
                 continue
-            multiple_files.update({os.path.basename(f):open(f, 'rb')})
+            multiple_files[param_name] = (os.path.basename(upload_file), open(upload_file, 'rb'))
                             
         if not formdata:
             formdata = None                    
         cls.__resp = cls.session.post(url, data = formdata, files = multiple_files, auth = cls.__auth)
-        cls.__auth = None   
+        cls.__auth = None 
     
     
     @classmethod

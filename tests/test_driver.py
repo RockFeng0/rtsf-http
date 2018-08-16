@@ -57,7 +57,7 @@ class TestTestRunner(unittest.TestCase):
 if __name__ == "__main__":
 #     unittest.main()
 #     logger.setup_logger("debug")
-#     runner = TestRunner(runner = Driver).run(r"C:\d_disk\auto\buffer\test\rtsf-http-test\.yaml")
+#     runner = TestRunner(runner = Driver).run(r"C:\d_disk\auto\buffer\test\rtsf-http-test\.yaml")    
     runner = TestRunner(runner = Driver).run(case_file1)
     html_report = runner.gen_html_report()
     
