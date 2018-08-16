@@ -196,9 +196,10 @@ GetRespReason                               # ->resp.reason
 SetVar(name, value)                         # -> 设置变量
 GetVar(name)                                # -> 从变量空间中，获取变量的值
 PopVar(name)                                # -> 从变量空间中，获取变量的值，然后删除该变量
-Upload(url, upload_files, **formdata)       # -> e.g.  Upload('http://127.0.0.1/filestorage/httpUploadFile',
-                                                            [r'd:\auto\buffer\t.jpg',r'd:\auto\buffer\t.zip'],
-                                                            dirType = 1, unzip = 0)
+Upload(url,upload_files_params,**formdata)  # -> e.g.  Upload('http://127.0.0.1/filestorage/httpUploadFile',
+                                                            {'pic1': r'C:\d_disk\auto\buffer\800x600.png','pic2': "",'pic3': ""},
+                                                            dirType = 1, unzip = 0) 
+            
 Download(url, dst, stream = None)           # -> e.g.  Download('http://127.0.0.1/filestorage/httpUploadFile/t.zip',
                                                             r'c:\download') 
 
