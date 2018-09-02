@@ -73,7 +73,7 @@ class WebHttp():
             return
         if not isinstance(regx, re._pattern_type):
             raise Exception("DyStrData need the arg which have compiled the regular expression.")
-            return            
+            
         values = regx.findall(text)
         result = ""
         if len(values)>index:

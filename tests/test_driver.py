@@ -27,38 +27,54 @@ from rtsf.p_testcase import TestCaseParser
 from rtsf.p_applog import logger
 from httpdriver.driver import Driver 
 
-# 分层用例       
-case_file1 = r'data\test_case.yaml'
-
-# 用例模型
-case_file2 = r'data\case_model.yaml'
-
-
 class TestTestRunner(unittest.TestCase):
     
-    def test_run_and_gen_hetml_report(self):
-#         logger.setup_logger("debug")
+    def setUp(self):
+        # 分层用例       
+        self.suite_api_case = r'data\suite_api_case.yaml'        
+        # 用例模型
+        self.case_model = r'data\case_model.yaml'
+
+    
+    def test_Driver_case_model(self):
+        #logger.setup_logger("debug")
         
-        runner = TestRunner(runner = Driver).run(case_file2)        
+        runner = TestRunner(runner = Driver).run(self.case_model)        
         html_report = runner.gen_html_report()
-        
+        #print(html_report)
         
         self.assertEqual(isinstance(runner.text_test_result, unittest.TextTestResult), True)        
         self.assertEqual(isinstance(runner._task_suite, TaskSuite), True)
         
         suite = runner._task_suite.tasks[0]
         self.assertEqual(isinstance(suite.test_runner, Runner), True)
-        self.assertEqual(isinstance(suite.test_runner.tracer, HtmlReporter), True)
+        self.assertEqual(isinstance(suite.test_runner.tracers, dict), True)
+        self.assertIsInstance(suite.test_runner.tracers[""], HtmlReporter)
         self.assertEqual(isinstance(suite.test_runner.parser, TestCaseParser), True)
         
         self.assertEqual(os.path.isfile(html_report[0]), True)
         
+    def test_Driver_suite_api_case(self):
+        runner = TestRunner(runner = Driver).run(self.suite_api_case)        
+        html_report = runner.gen_html_report()
+        #print(html_report)
+                
+        suite = runner._task_suite.tasks[0]
+        self.assertEqual(isinstance(suite.test_runner, Runner), True)
+        self.assertEqual(isinstance(suite.test_runner.tracers, dict), True)
+        self.assertIsInstance(suite.test_runner.tracers[""], HtmlReporter)
+        self.assertEqual(isinstance(suite.test_runner.parser, TestCaseParser), True)        
+        self.assertEqual(os.path.isfile(html_report[0]), True)
+                
         
 if __name__ == "__main__":
-#     unittest.main()
-#     logger.setup_logger("debug")
-#     runner = TestRunner(runner = Driver).run(r"C:\d_disk\auto\buffer\test\rtsf-http-test\.yaml")    
-    runner = TestRunner(runner = Driver).run(case_file1)
-    html_report = runner.gen_html_report()
+    #logger.setup_logger("debug")
+    unittest.main()
+#     suite = unittest.TestSuite()
+#     suite.addTest(TestTestRunner("test_Driver_case_model"))
+#     runner = unittest.TextTestRunner(verbosity=2)
+#     runner.run(suite)
     
+    
+
     
