@@ -2,6 +2,14 @@
 基于rtsf测试框架，关键字驱动测试http/https等api
 
 
+## 环境准备
+### 安装git 
+在安装rtsf-http的时候，一些依赖需要安装，但是这些依赖并未放到pip中，所以临时使用了git安装的方案，安装一下就好。[下载git](https://git-scm.com/downloads/)
+
+### 安装rtsf-http
+python setup.py install
+ 
+
 ## 编写测试用例，模板基于rtsf
 
 > 变量引用-> $var    关键字(函数)引用-> ${function}
