@@ -19,9 +19,9 @@ UI and Web Http automation frame for python.
 
 '''
 
-__title__           = "httpdriver"
+__title__           = "rtsf-http"
 __short_desc__      = "only for http test, base on rtsf"
-__version__         = 1.8
+__version__         = 1.9
 __autor__           = u"罗科峰"
 __author_email__    = "lkf20031988@163.com"
 __license__         = 'MIT'

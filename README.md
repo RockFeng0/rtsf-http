@@ -7,7 +7,7 @@
 在安装rtsf-http的时候，一些依赖需要安装，但是这些依赖并未放到pip中，所以临时使用了git安装的方案，安装一下就好。[下载git](https://git-scm.com/downloads/)
 
 ### 安装rtsf-http
-python setup.py install
+pip install rtsf-http
  
 
 ## 编写测试用例，模板基于rtsf
