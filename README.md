@@ -3,8 +3,6 @@
 
 
 ## 环境准备
-### 安装git 
-在安装rtsf-http的时候，一些依赖需要安装，但是这些依赖并未放到pip中，所以临时使用了git安装的方案，安装一下就好。[下载git](https://git-scm.com/downloads/)
 
 ### 安装rtsf-http
 pip install rtsf-http
@@ -175,6 +173,7 @@ usage: hdriver [-h] [--log-level LOG_LEVEL] [--log-file LOG_FILE] case_file
 usage: httpdriver [-h] [--log-level LOG_LEVEL] [--log-file LOG_FILE] case_file
 ```
 
+![hdriver-command.png](https://raw.githubusercontent.com/RockFeng0/img-folder/master/rtsf-http-img/hdriver-command.png)
 
 ## 测试报告及日志
 
