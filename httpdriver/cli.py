@@ -21,7 +21,7 @@ Provide a function for the automation test
 import argparse
 from rtsf.p_applog import color_print,logger
 from rtsf.p_executer import TestRunner
-from httpdriver.driver import Driver
+from httpdriver.driver import HttpDriver
 from httpdriver.__about__ import __version__
     
     
@@ -46,7 +46,7 @@ def main_hrun():
     args = parser.parse_args()
     logger.setup_logger(args.log_level, args.log_file)    
     
-    runner = TestRunner(runner = Driver).run(args.case_file)
+    runner = TestRunner(runner = HttpDriver).run(args.case_file)
     html_report = runner.gen_html_report()
     color_print("report: {}".format(html_report))
 

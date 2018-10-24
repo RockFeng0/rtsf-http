@@ -20,24 +20,26 @@ Provide a function for the automation test
 
 
 import re,json
-
+from requests import Session
 from rtsf.p_executer import Runner
 from rtsf.p_common import CommonUtils,ModuleUtils
 from rtsf.p_exception import FunctionNotFound,VariableNotFound
 
-class Driver(Runner):      
+class _Driver(Runner):      
     
     def __init__(self):
-        super(Driver,self).__init__()
-        self._Actions = ModuleUtils.get_imported_module("httpdriver.actions")
-        
+        super(_Driver,self).__init__()
+                
     def run_test(self, testcase_dict, driver_map):
-        fn, _ = driver_map
+        fn, fn_driver = driver_map
+        parser = self.parser
         tracer = self.tracers[fn]
         
-        parser = self.parser
-        parser.bind_functions(ModuleUtils.get_callable_class_method_names(self._Actions.WebHttp))
-        parser.update_binded_variables(self._Actions.WebHttp.glob)        
+        _Actions = ModuleUtils.get_imported_module("httpdriver.actions")
+        _Actions.WebHttp.session = fn_driver
+        
+        parser.bind_functions(ModuleUtils.get_callable_class_method_names(_Actions.WebHttp))
+        parser.update_binded_variables(_Actions.WebHttp.glob)        
          
         case_name = testcase_dict["name"]                 
         tracer.start(self.proj_info["module"], case_name, testcase_dict.get("responsible","Administrator"), testcase_dict.get("tester","Administrator"))        
@@ -47,12 +49,12 @@ class Driver(Runner):
             tracer.normal("**** bind glob variables")                
             glob_vars = parser.eval_content_with_bind_actions(testcase_dict.get("glob_var",{}))
             tracer.step("set global variables: {}".format(glob_vars))                
-            self._Actions.WebHttp.glob.update(glob_vars)            
+            _Actions.WebHttp.glob.update(glob_vars)            
              
             tracer.normal("**** bind glob regular expression")
             globregx = {k: re.compile(v) for k,v in testcase_dict.get("glob_regx",{}).items()}
             tracer.step("set global regular: {}".format(globregx))            
-            self._Actions.WebHttp.glob.update(globregx)
+            _Actions.WebHttp.glob.update(globregx)
                              
             tracer.normal("**** precommand")
             precommand = testcase_dict.get("pre_command",[])    
@@ -122,4 +124,15 @@ class Driver(Runner):
         finally:
 #             tracer.normal("globals:\n\t{}".format(parser._variables)) 
             tracer.stop()
+            
+class HttpDriver(_Driver):    
+    def __init__(self):
+        super(HttpDriver,self).__init__()
+        self._default_drivers = [("", Session())]        
+        
+class LocustDriver(_Driver):
+    def __init__(self, locust_client):
+        super(LocustDriver,self).__init__()
+        self._default_drivers = [("", locust_client)]
+        
             

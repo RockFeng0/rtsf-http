@@ -25,7 +25,7 @@ from rtsf.p_executer import TestRunner,Runner,TaskSuite
 from rtsf.p_report import HtmlReporter
 from rtsf.p_testcase import TestCaseParser
 from rtsf.p_applog import logger
-from httpdriver.driver import Driver 
+from httpdriver.driver import HttpDriver 
 
 class TestTestRunner(unittest.TestCase):
     
@@ -39,7 +39,7 @@ class TestTestRunner(unittest.TestCase):
     def test_Driver_case_model(self):
         #logger.setup_logger("debug")
         
-        runner = TestRunner(runner = Driver).run(self.case_model)        
+        runner = TestRunner(runner = HttpDriver).run(self.case_model)        
         html_report = runner.gen_html_report()
         #print(html_report)
         
@@ -55,7 +55,7 @@ class TestTestRunner(unittest.TestCase):
         self.assertEqual(os.path.isfile(html_report[0]), True)
         
     def test_Driver_suite_api_case(self):
-        runner = TestRunner(runner = Driver).run(self.suite_api_case)        
+        runner = TestRunner(runner = HttpDriver).run(self.suite_api_case)        
         html_report = runner.gen_html_report()
         #print(html_report)
                 
@@ -69,11 +69,11 @@ class TestTestRunner(unittest.TestCase):
         
 if __name__ == "__main__":
     #logger.setup_logger("debug")
-    unittest.main()
-#     suite = unittest.TestSuite()
-#     suite.addTest(TestTestRunner("test_Driver_case_model"))
-#     runner = unittest.TextTestRunner(verbosity=2)
-#     runner.run(suite)
+#     unittest.main()
+    suite = unittest.TestSuite()
+    suite.addTest(TestTestRunner("test_Driver_case_model"))
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(suite)
     
     
 
