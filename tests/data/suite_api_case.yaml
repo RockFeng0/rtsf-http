@@ -4,11 +4,9 @@
     module: 示例场景
     
 - case:
-    id: case1
-    desc: 示例场景1
+    name: 示例场景-case1
     suite: suite1(hello)
         
 - case:
-    id: case2
-    desc: 示例场景2
+    name: 示例场景-case2
     suite: suite2(hello,123456,luokefeng)

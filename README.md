@@ -22,12 +22,15 @@ pip install rtsf-http
 ```
 # 示例如   test.yml：
 - project:
+    # 模板遵循rtsf约定
     name: xxx系统
-    module: xxx模块功能测试
+    module: 登陆模块-功能测试
     
 - case:
     id: ATP-1
     desc: 打开百度
+    
+    name: demo_baidu1
     glob_var:
         passwd: 123@Qwe
     glob_regx:
@@ -100,18 +103,15 @@ pip install rtsf-http
     def: suite1($keyword)
     
 - case:
-    id: ATP-1
-    desc: 打开百度
+    name: suite1_demo_baidu
     api: api_1()
 
 - case:
-    id: ATP-2
-    desc: 搜索key
+    name: suite1_demo_baidu_key
     api: api_2($keyword)
 
 - case:
-    id: ATP-3
-    desc: 打开bing
+    name: suite1_demo_bing
     api: api_3()
        
 ```
@@ -121,21 +121,18 @@ pip install rtsf-http
 ```
 # suite_test2.yaml
 - project:
-    def: suite2($keyword)
+    def: suite2($keyword,$password,$username)
 
 - case:
-    id: ATP-1
-    desc: 打开bing
+    name: suite2_demo_bing
     api: api_3()
     
 - case:
-    id: ATP-2
-    desc: 打开百度
+    name: suite2_demo_baidu
     api: api_1()
 
 - case:
-    id: ATP-3
-    desc: 搜索key
+    name: suite2_demo_baidu_key
     api: api_2($keyword)
        
 ```
@@ -150,14 +147,12 @@ pip install rtsf-http
     module: 示例场景
     
 - case:
-    id: case1
-    desc: 示例场景1
+    name: 示例场景-case1
     suite: suite1(hello)
         
 - case:
-    id: case2
-    desc: 示例场景2
-    suite: suite2(hello)
+    name: 示例场景-case2
+    suite: suite2(hello,123456,luokefeng)
 
 ```
 
