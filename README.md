@@ -56,10 +56,9 @@ pip install rtsf-http
 - 分层用例，是指模块功能测试的时候，对测试用例进行分层，最小的单元为api，其次为suite，最后组成用例
 - 其存放路径、编写规则等，详见 [rtsf](https://github.com/RockFeng0/rtsf)相关介绍
 
-示例场景1： 
-     打开百度，搜索hello，打开bing
-示例场景2： 
-     打开bing, 打开百度，搜索hello，
+示例场景1:  打开百度，搜索hello，打开bing
+     
+示例场景2:  打开bing, 打开百度，搜索hello
 
 应用分层： 
 1. 打开百度 封装为 api_1, 搜索hello 封装为api_2, 打开bing封装为api_3;   
