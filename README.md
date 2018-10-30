@@ -51,6 +51,31 @@ pip install rtsf-http
 
 ```
 
+### 数据驱动用例
+数据驱动，根据rtsf的介绍，需要再project中,添加data关键字
+
+```
+# 示例如 data_driver.yaml
+- project:
+    name: xxx项目
+    module: xxx项目-首页功能-数据驱动
+    data:
+        - csv: devices.csv
+          by: Random
+        
+- case:
+    name: /baidu_test_$device
+    steps:
+        - request:
+            url: https://www.baidu.com
+            method: GET
+    verify:
+        - ${VerifyCode(200)}
+```
+
+data相关的具体使用方法，可以参见 [rtsf](https://github.com/RockFeng0/rtsf)介绍
+
+
 ### 分层用例
 
 - 分层用例，是指模块功能测试的时候，对测试用例进行分层，最小的单元为api，其次为suite，最后组成用例
