@@ -22,7 +22,7 @@ Provide a function for the automation test
 import re,json
 
 from rtsf.p_executer import Runner
-from rtsf.p_common import CommonUtils,ModuleUtils
+from rtsf.p_common import CommonUtils,ModuleUtils,FileSystemUtils
 from rtsf.p_exception import FunctionNotFound,VariableNotFound
 
 class Driver(Runner):      
@@ -41,7 +41,7 @@ class Driver(Runner):
         self._Actions.WebHttp.glob.update(variables)
         parser.update_binded_variables(self._Actions.WebHttp.glob)
          
-        case_name = parser.eval_content_with_bind_actions(testcase_dict["name"])
+        case_name = FileSystemUtils.get_legal_filename(parser.eval_content_with_bind_actions(testcase_dict["name"]))
         tracer.start(self.proj_info["module"], case_name, testcase_dict.get("responsible","Administrator"), testcase_dict.get("tester","Administrator"))        
         tracer.section(case_name)
          
