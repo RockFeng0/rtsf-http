@@ -31,15 +31,17 @@ class Driver(Runner):
         super(Driver,self).__init__()
         self._Actions = ModuleUtils.get_imported_module("httpdriver.actions")
         
-    def run_test(self, testcase_dict, driver_map):
+    def run_test(self, testcase_dict, variables, driver_map):
         fn, _ = driver_map
         tracer = self.tracers[fn]
         
         parser = self.parser
         parser.bind_functions(ModuleUtils.get_callable_class_method_names(self._Actions.WebHttp))
-        parser.update_binded_variables(self._Actions.WebHttp.glob)        
+        
+        self._Actions.WebHttp.glob.update(variables)
+        parser.update_binded_variables(self._Actions.WebHttp.glob)
          
-        case_name = testcase_dict["name"]                 
+        case_name = parser.eval_content_with_bind_actions(testcase_dict["name"])
         tracer.start(self.proj_info["module"], case_name, testcase_dict.get("responsible","Administrator"), testcase_dict.get("tester","Administrator"))        
         tracer.section(case_name)
          

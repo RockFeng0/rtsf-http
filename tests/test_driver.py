@@ -34,7 +34,8 @@ class TestTestRunner(unittest.TestCase):
         self.suite_api_case = r'data\suite_api_case.yaml'        
         # 用例模型
         self.case_model = r'data\case_model.yaml'
-
+        # 数据驱动-用例
+        self.data_driver_case = r'data\data_driver.yaml'
     
     def test_Driver_case_model(self):
         #logger.setup_logger("debug")
@@ -53,7 +54,18 @@ class TestTestRunner(unittest.TestCase):
         self.assertEqual(isinstance(suite.test_runner.parser, TestCaseParser), True)
         
         self.assertEqual(os.path.isfile(html_report[0]), True)
+    
+    def test_Driver_data_driver_case(self):
+        #logger.setup_logger("debug")
         
+        runner = TestRunner(runner = Driver).run(self.data_driver_case)        
+        html_report = runner.gen_html_report()
+        self.assertEqual(os.path.isfile(html_report[0]), True)
+        
+        result = runner.text_test_result
+        self.assertEqual(result.testsRun, 6)
+      
+            
     def test_Driver_suite_api_case(self):
         runner = TestRunner(runner = Driver).run(self.suite_api_case)        
         html_report = runner.gen_html_report()
@@ -69,11 +81,11 @@ class TestTestRunner(unittest.TestCase):
         
 if __name__ == "__main__":
     #logger.setup_logger("debug")
-    unittest.main()
-#     suite = unittest.TestSuite()
-#     suite.addTest(TestTestRunner("test_Driver_suite_api_case"))
-#     runner = unittest.TextTestRunner(verbosity=2)
-#     runner.run(suite)
+#     unittest.main()
+    suite = unittest.TestSuite()
+    suite.addTest(TestTestRunner("test_Driver_data_driver_case"))
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(suite)
     
     
 
