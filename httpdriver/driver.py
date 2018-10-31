@@ -70,11 +70,12 @@ class _Driver(Runner):
                     continue
                 
                 raw_requests = step["request"].copy()
-                url = parser.eval_content_with_bind_actions(raw_requests.pop("url"))
-                                                
-                method = parser.eval_content_with_bind_actions(raw_requests.pop("method"))
+                url     = parser.eval_content_with_bind_actions(raw_requests.pop("url"))                                                                
+                method  = parser.eval_content_with_bind_actions(raw_requests.pop("method"))
                 if not method.upper() in ("GET", "POST"):
                     raise FunctionNotFound("Not found method('%s')" %method)
+                
+                tracer.step("requests url: \n\t{} {}".format(method.upper(), url))
                 req = parser.get_bind_function(method.upper())
                 
                 kwargs = {}
