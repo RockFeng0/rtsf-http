@@ -86,10 +86,10 @@ class _Driver(Runner):
                 req(url, **kwargs)
              
                 resp_headers = parser.get_bind_function("GetRespHeaders")()
-                tracer.step("response headers: \n\t{}".format(resp_headers))
+                tracer.step("response headers: \n\t{}".format(json.dumps(dict(resp_headers), indent=4, separators=(',', ': '))))
              
                 resp_text = parser.get_bind_function("GetRespText")()
-                tracer.step(u"response body: \n\t{}".format(resp_text))                                 
+                tracer.step(u"response body: \n\t{}".format(resp_text))
             
             tracer.normal("**** postcommand")
             postcommand = testcase_dict.get("post_command", [])        
