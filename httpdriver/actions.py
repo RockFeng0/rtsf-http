@@ -19,8 +19,7 @@ Provide a function for the automation test
 '''
 
 
-import requests,os,re,json,ast
-from requests import Session
+import os,re,json,ast
 from requests.auth import HTTPBasicAuth,HTTPDigestAuth
 
 def _parse_string_value(str_value):
@@ -32,7 +31,7 @@ def _parse_string_value(str_value):
         return str_value
         
 class WebHttp():
-    head, data, session, glob = None, None, Session(), {}
+    head, data, session, glob = None, None, None, {}
     
     __resp = None
     __auth = None
@@ -201,7 +200,7 @@ class WebHttp():
                 'pic8': ""
             }
             upload(url, upload_files, dirType = 1, unzip = 0)
-        '''                
+        '''
         multiple_files = {}
         for param_name, upload_file in upload_files_params.items():
             if not os.path.isfile(upload_file):
