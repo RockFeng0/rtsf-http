@@ -68,30 +68,21 @@ class _Driver(Runner):
             for step in steps:
                 if not "request" in step:
                     continue
-                 
-                url = parser.eval_content_with_bind_actions(step["request"]["url"])           
-                if not url:
-                    raise VariableNotFound("Not found url('%s')" %url)
-             
-                method = parser.eval_content_with_bind_actions(step["request"]["method"])
-                req = parser.get_bind_function(method.upper())
-                if not req:
+                
+                raw_requests = step["request"].copy()
+                url = parser.eval_content_with_bind_actions(raw_requests.pop("url"))
+                                                
+                method = parser.eval_content_with_bind_actions(raw_requests.pop("method"))
+                if not method.upper() in ("GET", "POST"):
                     raise FunctionNotFound("Not found method('%s')" %method)
-                tracer.step("requests url -> \n\t{} {}".format(method.upper(), url))
-                                    
-                head = parser.eval_content_with_bind_actions(step["request"].get("headers"))
-                head = head if head else {}
-                tracer.step("requests head -> \n\t{}".format(json.dumps(head,indent=4, separators=(',', ': '))))
-                set_head = parser.get_bind_function("SetReqHead")
-                 
-                data = parser.eval_content_with_bind_actions(step["request"].get("data"))
-                data = data if data else {}
-                tracer.step("requests body -> \n\t{}".format(json.dumps(data,indent=4, separators=(',', ': '))))
-                set_data =parser.get_bind_function("SetReqData")
-             
-                set_head(**head)
-                set_data(**data)                
-                req(url)
+                req = parser.get_bind_function(method.upper())
+                
+                kwargs = {}
+                for k,v in raw_requests.items():
+                    kwargs[k] = parser.eval_content_with_bind_actions(v)
+                    tracer.step("requests {} -> \n\t{}".format(k, json.dumps(kwargs[k], indent=4, separators=(',', ': '))))
+                
+                req(url, **kwargs)
              
                 resp_headers = parser.get_bind_function("GetRespHeaders")()
                 tracer.step("response headers: \n\t{}".format(resp_headers))

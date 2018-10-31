@@ -49,16 +49,7 @@ class WebHttp():
         :param value: parameter value
         '''
         cls.glob.update({name:value})
-        
-    
-    @classmethod
-    def SetReqHead(cls, **head):        
-        cls.head = head
-    
-    @classmethod
-    def SetReqData(cls, **data):        
-        cls.data = data
-    
+            
     @classmethod
     def DyStrData(cls,name, regx, index = 0):
         ''' set dynamic value from the string data of response  
@@ -136,32 +127,23 @@ class WebHttp():
             cls.__auth = HTTPDigestAuth(username, password)        
             
     @classmethod
-    def GET(cls, url):
-        '''
-        :简化get
-        :param url: request url 
-        '''
-        cls.__resp = cls.session.get(url, headers = cls.head, auth = cls.__auth)
+    def GET(cls, url, **kwargs):
+        cls.__resp = cls.session.get(url, auth = cls.__auth, **kwargs)
         cls.__auth = None
                 
     @classmethod
-    def POST(cls, url, datatype="raw"):
+    def POST(cls, url, data=None, json=None, **kwargs):
         '''
         :简化post
-        :param datatype: [raw/json] request the data with Content-type[x-www-form-urlencoded] or Content-type[json]         
+        :param data/json: [raw/json] request the data with Content-type[x-www-form-urlencoded] or Content-type[json]         
         '''
-        # cls.head type is dict 
-        if cls.head and not isinstance(cls.head, dict):
+        headers = kwargs.pop("headers", None)
+        if headers and not isinstance(headers, dict):
             try:
-                cls.head = json.loads(cls.head)
+                headers = json.loads(headers)
             except:
-                cls.head = None
-        
-        if datatype.lower() == "raw":
-            cls.__resp = cls.session.post(url, headers = cls.head, data = cls.data, auth = cls.__auth)
-        elif datatype.lower() == "json":
-            cls.__resp = cls.session.post(url, headers = cls.head, json = cls.data, auth = cls.__auth)
-        cls.head, cls.data = None, None
+                headers = None
+        cls.__resp = cls.session.post(url, headers = headers, data = data, json = json, auth = cls.__auth, **kwargs)
         cls.__auth = None
 
     @classmethod
