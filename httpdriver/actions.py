@@ -20,6 +20,7 @@ Provide a function for the automation test
 
 
 import os,re,json,ast
+from requests import Session
 from requests.auth import HTTPBasicAuth,HTTPDigestAuth
 
 def _parse_string_value(str_value):
@@ -34,7 +35,7 @@ class WebHttp():
     head, data, session, glob = None, None, None, {}
     
     __resp = None
-    __auth = None
+    __auth = None    
     __test = {"a":1,
                "b":[1,2,3,4],
                "c":{"d":5,"e":6},
@@ -127,8 +128,11 @@ class WebHttp():
             cls.__auth = HTTPDigestAuth(username, password)        
             
     @classmethod
-    def GET(cls, url, **kwargs):
-        cls.__resp = cls.session.get(url, auth = cls.__auth, **kwargs)
+    def GET(cls, url, **kwargs):     
+        if isinstance(cls.session,Session):
+            cls.__resp = cls.session.get(url, auth = cls.__auth, **kwargs)
+        else:
+            cls.__resp = cls.session.get(url, auth = cls.__auth, catch_response = True, **kwargs)
         cls.__auth = None
                 
     @classmethod
@@ -143,17 +147,23 @@ class WebHttp():
                 headers = json.loads(headers)
             except:
                 headers = None
-        cls.__resp = cls.session.post(url, headers = headers, data = data, json = json, auth = cls.__auth, **kwargs)
+        if isinstance(cls.session,Session):
+            cls.__resp = cls.session.post(url, headers = headers, data = data, json = json, auth = cls.__auth, **kwargs)
+        else:
+            cls.__resp = cls.session.post(url, headers = headers, data = data, json = json, auth = cls.__auth, catch_response = True, **kwargs)            
         cls.__auth = None
 
     @classmethod
-    def Download(cls, url, dst, stream = None):
+    def Download(cls, url, dst, stream = None, **kwargs):
         ''' save response body/content/text to a file
         :param url: download url
         :param stream: True/False or None, if False or None, response body will be immediately download; if True, will be hung up untill the all data in Response.content is read.
         :param dst: the full path or the full path file  
-        '''                
-        cls.__resp = cls.session.get(url,stream = stream, auth = cls.__auth)
+        '''
+        if isinstance(cls.session,Session):
+            cls.__resp = cls.session.get(url,stream = stream, auth = cls.__auth, **kwargs)
+        else:
+            cls.__resp = cls.session.get(url,stream = stream, auth = cls.__auth, catch_response = True, **kwargs)
         cls.__auth = None
         
         if os.path.isdir(dst):
@@ -168,8 +178,14 @@ class WebHttp():
                 fd.write(cls.__resp.text.encode(cls.__resp.encoding))   
     
     @classmethod
-    def Upload(cls,url, upload_files_params, **formdata):
-        '''usage:
+    def Upload(cls,url, upload_files_params, data=None, **kwargs):
+        ''' upload files to server
+        @param url: upload url
+        @param upload_files_params:  dict type, format is 'alias_name: file_path'
+        @param data: dict type, formdata of upload files
+        @param kwargs: others paramter of requests.post
+        
+        e.g.
             url = 'http://192.168.102.241:8008/dls/FileStorage/httpUploadFile'
             upload_files_params = {
                 'pic1': r'C:\d_disk\auto\buffer\800x600.png',
@@ -181,18 +197,21 @@ class WebHttp():
                 'pic7': "",
                 'pic8': ""
             }
-            upload(url, upload_files, dirType = 1, unzip = 0)
-        '''
+            data = {'unzip': 0, 'dirType': 1}
+            
+            Upload(url, upload_files_params, data, verify=False)
+        '''        
         multiple_files = {}
         for param_name, upload_file in upload_files_params.items():
             if not os.path.isfile(upload_file):
                 multiple_files[param_name] = ("","")
                 continue
             multiple_files[param_name] = (os.path.basename(upload_file), open(upload_file, 'rb'))
-                            
-        if not formdata:
-            formdata = None                    
-        cls.__resp = cls.session.post(url, data = formdata, files = multiple_files, auth = cls.__auth)
+        
+        if isinstance(cls.session,Session): 
+            cls.__resp = cls.session.post(url, data = data, files = multiple_files, auth = cls.__auth, **kwargs)
+        else:
+            cls.__resp = cls.session.post(url, data = data, files = multiple_files, auth = cls.__auth, catch_response = True, **kwargs)
         cls.__auth = None 
     
     
@@ -223,7 +242,20 @@ class WebHttp():
             return False if value == None else True
         else:
             return value == expect_value
-        
+    
+    @classmethod
+    def LocustSuccess(cls):
+        ''' Report the response as successful, if session is locust'''
+        if not isinstance(cls.session,Session):
+            cls.__resp.success()
+    
+    @classmethod
+    def LocustFailure(cls,exc):
+        ''' Report the response as a failure, if session is locust'''
+        if not isinstance(cls.session,Session):
+            cls.__resp.failure(exc)
+                            
+    
     @classmethod
     def GetRespCode(cls):
         ''' HTTP-code'''

@@ -105,6 +105,12 @@ class _Driver(Runner):
                     tracer.fail(u"{} --> {}".format(v,r))
                 else:
                     tracer.ok(u"{} --> {}".format(v,r))
+            
+            if False in result:
+                idx = result.index(False)
+                parser.get_bind_function("LocustFailure")(u"{} --> {}".format(verify[idx],False))
+            else:
+                parser.get_bind_function("LocustSuccess")()
                         
         except KeyError as e:
             tracer.error("Can't find key[%s] in your testcase." %e)
