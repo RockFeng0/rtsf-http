@@ -70,20 +70,20 @@ class _Driver(Runner):
                     continue
                 
                 raw_requests = step["request"].copy()
-                url     = parser.eval_content_with_bind_actions(raw_requests.pop("url"))                                                                
-                method  = parser.eval_content_with_bind_actions(raw_requests.pop("method"))
+                parsered_requests = parser.eval_content_with_bind_actions(raw_requests)
+                
+                url     = parsered_requests.pop("url")                                                             
+                method  = parsered_requests.pop("method")
                 if not method.upper() in ("GET", "POST"):
                     raise FunctionNotFound("Not found method('%s')" %method)
                 
                 tracer.step("requests url: \n\t{} {}".format(method.upper(), url))
                 req = parser.get_bind_function(method.upper())
                 
-                kwargs = {}
-                for k,v in raw_requests.items():
-                    kwargs[k] = parser.eval_content_with_bind_actions(v)
-                    tracer.step("requests {} -> \n\t{}".format(k, json.dumps(kwargs[k], indent=4, separators=(',', ': '))))
+                for k,v in parsered_requests.items():
+                    tracer.step("requests {} -> \n\t{}".format(k, json.dumps(v, indent=4, separators=(',', ': '))))
                 
-                req(url, **kwargs)
+                req(url, **parsered_requests)
              
                 resp_headers = parser.get_bind_function("GetRespHeaders")()
                 tracer.step("response headers: \n\t{}".format(json.dumps(dict(resp_headers), indent=4, separators=(',', ': '))))
