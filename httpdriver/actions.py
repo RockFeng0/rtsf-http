@@ -262,6 +262,15 @@ class WebHttp():
         return cls.__resp.status_code
     
     @classmethod
+    def GetRespText(cls):
+        ''' Content of the response, in unicode '''
+#         cls.__resp.encoding = requests.utils.get_encodings_from_content(cls.__resp.text)
+#         cls.__resp.encoding = cls.__resp.apparent_encoding
+        if isinstance(cls.session,Session):
+            cls.__resp.encoding = None
+        return cls.__resp.text
+    
+    @classmethod
     def GetRespReason(cls):
         '''Textual reason of responded HTTP Status, e.g. "Not Found" or "OK". '''
         return cls.__resp.reason
@@ -282,14 +291,6 @@ class WebHttp():
     def GetRespEncoding(cls):
         ''' response encoding '''
         return cls.__resp.encoding
-    
-    @classmethod
-    def GetRespText(cls):
-        ''' Content of the response, in unicode '''
-#         cls.__resp.encoding = requests.utils.get_encodings_from_content(cls.__resp.text)
-#         cls.__resp.encoding = cls.__resp.apparent_encoding
-        cls.__resp.encoding = None
-        return cls.__resp.text
     
     @classmethod
     def GetRespContent(cls):
