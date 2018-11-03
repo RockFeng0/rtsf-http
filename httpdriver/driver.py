@@ -154,5 +154,6 @@ class LocustDriver(_Driver):
         for v, r in result:
             if r == False:
                 resp_obj.failure(u"{} --> {}".format(v,r))
+                return
         resp_obj.success()
         
