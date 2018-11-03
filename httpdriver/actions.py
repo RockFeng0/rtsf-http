@@ -38,6 +38,7 @@ def _parse_string_value(str_value):
 class RequestTrackInfo(object):
     
     def __init__(self,resp_object):
+        self.__response = resp_object
         self.__track_info = {
             "status_code": resp_object.status_code,
             "reason": resp_object.reason,            
@@ -57,6 +58,10 @@ class RequestTrackInfo(object):
             self.__track_info["response_body"] = resp_object.json()
         except ValueError:
             self.__track_info["response_body"] = resp_object.content        
+    
+    @property
+    def response(self):
+        return self.__response
     
     @property
     def trackinfo(self):
@@ -157,10 +162,13 @@ class Request(object):
                 else:
                     fd.write(resp.content)
                     #fd.write(resp.text.encode(cls.__resp.encoding))
-            cls.__trackinfo = RequestTrackInfo(resp).trackinfo
+            req_track_obj = RequestTrackInfo(resp)
+            cls.__trackinfo = req_track_obj.trackinfo
         else:
-            cls.__trackinfo = RequestTrackInfo(Request.session.get(url, **kwargs)).trackinfo
-        return cls.__trackinfo
+            req_track_obj = RequestTrackInfo(Request.session.get(url, **kwargs))
+            cls.__trackinfo = req_track_obj.trackinfo
+            
+        return req_track_obj
              
     
     @classmethod
@@ -208,8 +216,9 @@ class Request(object):
                 multiple_files[param_name] = (os.path.basename(upload_file), open(upload_file, 'rb'))            
             kwargs["files"] = multiple_files
         
-        cls.__trackinfo = RequestTrackInfo(Request.session.post(url, data = data, json = json, **kwargs)).trackinfo
-        return cls.__trackinfo
+        req_track_obj = RequestTrackInfo(Request.session.post(url, data = data, json = json, **kwargs))
+        cls.__trackinfo = req_track_obj.trackinfo
+        return req_track_obj
     
     #### postcommand
             

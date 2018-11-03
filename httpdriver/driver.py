@@ -27,13 +27,16 @@ from rtsf.p_exception import FunctionNotFound,VariableNotFound
 
 class _Driver(Runner):      
     
-    def __init__(self):
+    def __init__(self, has_trace):
         super(_Driver,self).__init__()
+        self.__has_trace = has_trace
         
     def run_test(self, testcase_dict, variables, driver_map):
         fn, fn_driver = driver_map
         parser = self.parser
         tracer = self.tracers[fn]
+        if not self.__has_trace:
+            tracer._switch_off()
         
         _Actions = ModuleUtils.get_imported_module("httpdriver.actions")
         _Actions.Request.session = fn_driver
@@ -83,10 +86,12 @@ class _Driver(Runner):
                 for k,v in parsered_requests.items():
                     tracer.step("requests {} -> \n\t{}".format(k, json.dumps(v, indent=4, separators=(',', ': '))))
                 
-                resp = req(url, **parsered_requests)    
+                #resp = req(url, **parsered_requests)
+                req_track_obj = self._request(req, url, **parsered_requests)
+                resp_info     = req_track_obj.trackinfo
                          
-                tracer.step("response headers: \n\t{}".format(json.dumps(dict(resp["response_headers"]), indent=4, separators=(',', ': '))))             
-                tracer.step(u"response body: \n\t{}".format(resp["response_body"]))
+                tracer.step("response headers: \n\t{}".format(json.dumps(dict(resp_info["response_headers"]), indent=4, separators=(',', ': '))))             
+                tracer.step(u"response body: \n\t{}".format(resp_info["response_body"]))
             
             tracer.normal("**** postcommand")
             postcommand = testcase_dict.get("post_command", [])        
@@ -97,11 +102,8 @@ class _Driver(Runner):
             tracer.normal("**** verify")
             verify = testcase_dict.get("verify",[])
             result = parser.eval_content_with_bind_actions(verify)
-            for v, r in zip(verify,result):
-                if r == False:
-                    tracer.fail(u"{} --> {}".format(v,r))
-                else:
-                    tracer.ok(u"{} --> {}".format(v,r))            
+            
+            self._verify(zip(verify,result), tracer, req_track_obj.response)
                         
         except KeyError as e:
             tracer.error("Can't find key[%s] in your testcase." %e)
@@ -114,14 +116,43 @@ class _Driver(Runner):
         finally:
 #             tracer.normal("globals:\n\t{}".format(parser._variables)) 
             tracer.stop()
+    
+    def _request(self, func, url, **kwargs):
+        ''' Override'''
+        pass
+    
+    def _verify(self, result, trace_obj, resp_obj):
+        ''' Override'''
+        pass
 
 class HttpDriver(_Driver):    
     def __init__(self):
-        super(HttpDriver,self).__init__()
+        super(HttpDriver,self).__init__(has_trace = True)
         self._default_drivers = [("", Session())]        
-        
+    
+    def _request(self, func, url, **kwargs):
+        return func(url, **kwargs)
+    
+    def _verify(self, result, trace_obj, resp_obj):
+        _ = resp_obj
+        for v, r in result:
+            msg = u"{} --> {}".format(v,r)
+            func = trace_obj.fail if r == False else trace_obj.ok
+            func(msg)
+                
 class LocustDriver(_Driver):
     def __init__(self, locust_client):
-        super(LocustDriver,self).__init__()
+        super(LocustDriver,self).__init__(has_trace = False)
         self._default_drivers = [("", locust_client)]
+    
+    def _request(self, func, url, **kwargs):
+        kwargs["catch_response"] = True
+        return func(url, **kwargs)
+    
+    def _verify(self, result, trace_obj, resp_obj):
+        _ = trace_obj
+        for v, r in result:
+            if r == False:
+                resp_obj.failure(u"{} --> {}".format(v,r))
+        resp_obj.success()
         
