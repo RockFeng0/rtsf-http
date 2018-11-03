@@ -201,37 +201,48 @@ usage: httpdriver [-h] [--log-level LOG_LEVEL] [--log-file LOG_FILE] case_file
 
 ## 基于rtsf，封装的关键字(内置函数)
 
+
 ```
-DyJsonData(name,sequence)                   # -> resp.text or resp.content 返回json格式时，依据sequence，保存至变量name
-DyStrData(name,regx,index=0)                # -> resp.text or resp.content 返回html/xml等格式时， 依据正则regx和下标index，保存至变量name                                           
-
-GetReqData()                                # ->resp.request.body
-GetReqHeaders(name                          # ->resp.request.headers;默认name=None,返回所有的headers; 如果指定了name，那么返回headers中指定name的值；
-GetReqMethod()                              # ->resp.request.method
-GetReqUrl()                                 # ->resp.request.url
-
-GetRespCode                                 # ->resp.status_code
-GetRespContent                              # ->resp.content
-GetRespText                                 # ->resp.text 
-GetRespCookie                               # ->resp.cookies   返回字典
-GetRespElapsed                              # ->resp.elapsed
-GetRespEncoding                             # ->resp.encoding
-GetRespHeaders(name)                        # ->resp.headers; 默认name=None,返回所有的headers; 如果指定了name，那么返回headers中指定name的值；
-GetRespReason                               # ->resp.reason
-
-SetVar(name, value)                         # -> 设置变量
+# glob_var  通常function获取值后，复制给变量控件
 GetVar(name)                                # -> 从变量空间中，获取变量的值
 PopVar(name)                                # -> 从变量空间中，获取变量的值，然后删除该变量
-Upload(url,upload_files_params,**formdata)  # -> e.g.  Upload('http://127.0.0.1/filestorage/httpUploadFile',
-                                                            {'pic1': r'C:\d_disk\auto\buffer\800x600.png','pic2': "",'pic3': ""},
-                                                            dirType = 1, unzip = 0) 
-            
-Download(url, dst, stream = None)           # -> e.g.  Download('http://127.0.0.1/filestorage/httpUploadFile/t.zip',
-                                                            r'c:\download') 
+GetBasicAuth(username,password)             # -> 获取basic加密，用于传递 requests的auth参数
+GetDigestAuth(username,password)            # -> 获取digest加密，用于传递 requests的auth参数 
 
-VerifyCode(code)                            #  验证响应码为code
+# precommand 通常用于定义一些变量，用于传参
+SetVar(name, value)                         # -> 设置变量至变量空间，
+
+# postcommand 通常用于动态定义一些变量，用于验证
+DyStrData(name,regx,index=0)                # -> resp.text or resp.content 返回html/xml等格式时， 依据正则regx和下标index，保存至变量name
+DyJsonData(name,sequence)                   # -> resp.text or resp.content 返回json格式时，依据sequence，保存至变量name
+
+# verify
 VerifyContain(strs)                         #  验证相应的body中，包含字符串
+VerifyCode(code)                            #  验证响应码为code
 VerifyVar(name, expect_value=None)          #  验证变量的值是否为期望值；如果期望值为None，则仅验证变量是否被赋值
+
+
+# 下载的请求示例，yaml编写：
+steps:
+    - request:
+        url: https://www.baidu.com          
+        method: get
+        download_dir: c:\downloads
+        
+        
+# 上传的请求示例, yaml编写
+steps:
+    - request:
+        url: http://127.0.0.1/filestorage/httpUploadFile
+        method: post
+        files:
+            pic1: C:/d_disk/auto/buffer/800x600.png
+            pic2: 
+            pic3:
+        data: 
+            dirType: 1
+            unzip: 0        
+
 ```
 
 ## 自定义，关键字(函数、变量)

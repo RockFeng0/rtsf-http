@@ -11,7 +11,7 @@
     steps:
         - request:
             url: https://www.baidu.com
-            method: GET
+            method: get
     verify:
         - ${VerifyCode(200)}
 
@@ -20,6 +20,6 @@
     steps:
         - request:
             url: https://www.163.com              
-            method: GET
+            method: get
     verify:
         - ${VerifyCode(200)}

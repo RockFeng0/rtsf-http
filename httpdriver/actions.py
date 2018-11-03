@@ -20,7 +20,11 @@ Provide a function for the automation test
 
 
 import os,re,json,ast
-from requests import Session
+from base64 import b64encode
+from jinja2 import escape
+from collections import Iterable
+from rtsf.p_compat import basestring, bytes, numeric_types
+from requests.structures import CaseInsensitiveDict
 from requests.auth import HTTPBasicAuth,HTTPDigestAuth
 
 def _parse_string_value(str_value):
@@ -31,11 +35,71 @@ def _parse_string_value(str_value):
     except SyntaxError:
         return str_value
         
-class WebHttp():
-    head, data, session, glob = None, None, None, {}
+class RequestTrackInfo(object):
     
-    __resp = None
-    __auth = None    
+    def __init__(self,resp_object):
+        self.__track_info = {
+            "status_code": resp_object.status_code,
+            "reason": resp_object.reason,            
+            "elapsed": resp_object.elapsed, #the time between sending request and the arrival of the response
+            
+            "request_url": resp_object.request.url,
+            "request_method": resp_object.request.method,
+            "request_headers": resp_object.request.headers,
+            "request_body": resp_object.request.body,
+            
+            "response_headers": resp_object.headers,
+            "response_cookies": dict(resp_object.cookies.items()),
+            "response_encoding": resp_object.encoding,
+            }
+        
+        try:
+            self.__track_info["response_body"] = resp_object.json()
+        except ValueError:
+            self.__track_info["response_body"] = resp_object.content        
+    
+    @property
+    def trackinfo(self):
+        self.__stringify_body('request')
+        self.__stringify_body('response')
+        return self.__track_info
+        
+    def __stringify_body(self, request_or_response):
+        ''' this method reference from httprunner '''
+        headers = self.__track_info['{}_headers'.format(request_or_response)]
+        body = self.__track_info.get('{}_body'.format(request_or_response))
+    
+        if isinstance(body, CaseInsensitiveDict):
+            body = json.dumps(dict(body), ensure_ascii=False)
+    
+        elif isinstance(body, (dict, list)):
+            body = json.dumps(body, indent=2, ensure_ascii=False)
+    
+        elif isinstance(body, bytes):
+            resp_content_type = headers.get("Content-Type", "")
+            try:
+                if "image" in resp_content_type:
+                    self.__track_info["response_data_type"] = "image"
+                    body = "data:{};base64,{}".format(
+                        resp_content_type,
+                        b64encode(body).decode('utf-8')
+                    )
+                else:
+                    body = escape(body.decode("utf-8"))
+            except UnicodeDecodeError:
+                pass
+    
+        elif not isinstance(body, (basestring, numeric_types, Iterable)):
+            # class instance, e.g. MultipartEncoder()
+            body = repr(body)
+    
+        self.__track_info['{}_body'.format(request_or_response)] = body
+
+class Request(object):
+    session = None
+    glob = {}
+    __trackinfo = {}
+    
     __test = {"a":1,
                "b":[1,2,3,4],
                "c":{"d":5,"e":6},
@@ -43,6 +107,26 @@ class WebHttp():
                "h":[{"i":10,"j":11},{"k":12}]
                }
     
+    #### glob_var
+    @staticmethod
+    def GetBasicAuth(username,password):
+        ''' auth: basic encrypt to base64 '''
+        return HTTPBasicAuth(username, password)
+    
+    @staticmethod
+    def GetDigestAuth(username,password):
+        ''' auth: digest encrypt to md5 '''
+        return HTTPDigestAuth(username, password)
+    
+    @classmethod
+    def GetVar(cls, name):
+        return cls.glob.get(name)
+    
+    @classmethod
+    def PopVar(cls, name):
+        return cls.glob.pop(name, None)
+    
+    #### precommand
     @classmethod
     def SetVar(cls, name, value):
         ''' set static value
@@ -50,6 +134,84 @@ class WebHttp():
         :param value: parameter value
         '''
         cls.glob.update({name:value})
+    
+    #### steps            
+    @classmethod
+    def Get(cls, url, **kwargs):
+        '''
+        @param download_dir:  director or filepath, define a download request
+        @param stream: True if large file, default is None 
+        @param catch_response: locust parameter, raise a error if not a locust session. True/False, True if you want to define a locust request is success or fail
+        '''
+        if "download_dir" in kwargs:
+            # download files
+            dst = kwargs.pop("download_dir")
+            stream = kwargs.get("stream")
+            resp = Request.session.get(url, **kwargs)
+            
+            f_abspath = os.path.join(dst, os.path.basename(url) + ".html") if os.path.isdir(dst) else dst
+            with open(f_abspath, 'wb') as fd:
+                if stream: 
+                    for chunk in resp.iter_content():
+                        fd.write(chunk)
+                else:
+                    fd.write(resp.content)
+                    #fd.write(resp.text.encode(cls.__resp.encoding))
+            cls.__trackinfo = RequestTrackInfo(resp).trackinfo
+        else:
+            cls.__trackinfo = RequestTrackInfo(Request.session.get(url, **kwargs)).trackinfo
+        return cls.__trackinfo
+             
+    
+    @classmethod
+    def Post(cls, url, data=None, json=None, **kwargs):
+        '''        
+        @param data/json: [raw/json] request the data with Content-type[x-www-form-urlencoded] or Content-type[json]         
+        @param files:  dict type, define a upload request
+        @param catch_response: locust parameter, raise a error if not a locust session. True/False, True if you want to define a locust request is success or fail
+        e.g. 
+            files = {
+                'pic1': r'D:\auto\buffer\003.png',
+                'pic2': "",
+                'pic3': "",
+                'pic4': "",
+                'pic5': "",
+                'pic6': "",
+                'pic7': "",
+                'pic8': ""
+            }
+            
+        @note:  requests upload files
+        e.g. upload files
+            url = 'http://192.168.102.241:8008/dls/FileStorage/httpUploadFile'
+            multiple_files = {'pic8': ('', ''), 
+                              'pic2': ('', ''), 
+                              'pic1': ('003.png', open(r'D:\auto\buffer\003.png', rb)), 
+                              'pic6': ('', ''), 'pic4': ('', ''), 
+                              'pic7': ('', ''), 
+                              'pic3': ('', ''), 
+                              'pic5': ('', '')
+                              }
+            data = {'unzip': 0, 'dirType': 1}
+            requests.post(url, data = data, files = multiple_files)
+        '''
+        files = kwargs.pop("files",{})
+        
+        if files and isinstance(files, dict):
+            # upload files
+            multiple_files = {}
+            for param_name, upload_file in files.items():
+                
+                if not upload_file or not os.path.isfile(upload_file):
+                    multiple_files[param_name] = ("","")
+                    continue
+                multiple_files[param_name] = (os.path.basename(upload_file), open(upload_file, 'rb'))            
+            kwargs["files"] = multiple_files
+        
+        cls.__trackinfo = RequestTrackInfo(Request.session.post(url, data = data, json = json, **kwargs)).trackinfo
+        return cls.__trackinfo
+    
+    #### postcommand
             
     @classmethod
     def DyStrData(cls,name, regx, index = 0):
@@ -59,7 +221,8 @@ class WebHttp():
             e.g.
             DyStrData("a",re.compile('123'))
         '''
-        text = cls.GetRespText()
+        text = cls.__trackinfo["response_body"]
+        
         if not text:
             return
         if not isinstance(regx, re._pattern_type):
@@ -89,7 +252,7 @@ class WebHttp():
             sequence3 = "f.g.2" # -> 9
             sequence4 = "h.0.j" # -> 11
         '''
-        text = cls.GetRespText()        
+        text = cls.__trackinfo["response_body"]
         if not text:
             return
                 
@@ -105,131 +268,20 @@ class WebHttp():
             except:            
                 cls.glob.update({name:None})
                 return        
-        cls.glob.update({name:resp})
-        
-                    
-    @classmethod
-    def GetVar(cls, name):
-        return cls.glob.get(name)
+        cls.glob.update({name:resp})    
     
-    @classmethod
-    def PopVar(cls, name):
-        return cls.glob.pop(name, None)
-    
-    @classmethod
-    def LoginAuth(cls,username,password,auth):
-        '''
-        :auth: [basic/digest] encrypt to base64 or md5
-        '''
-        
-        if auth == "basic":
-            cls.__auth = HTTPBasicAuth(username, password)
-        elif auth == "digest":
-            cls.__auth = HTTPDigestAuth(username, password)        
-            
-    @classmethod
-    def GET(cls, url, **kwargs):     
-        if isinstance(cls.session,Session):
-            cls.__resp = cls.session.get(url, auth = cls.__auth, **kwargs)
-        else:
-            cls.__resp = cls.session.get(url, auth = cls.__auth, catch_response = True, **kwargs)
-        cls.__auth = None
-                
-    @classmethod
-    def POST(cls, url, data=None, json=None, **kwargs):
-        '''
-        :简化post
-        :param data/json: [raw/json] request the data with Content-type[x-www-form-urlencoded] or Content-type[json]         
-        '''
-        headers = kwargs.pop("headers", None)
-        if headers and not isinstance(headers, dict):
-            try:
-                headers = json.loads(headers)
-            except:
-                headers = None
-        if isinstance(cls.session,Session):
-            cls.__resp = cls.session.post(url, headers = headers, data = data, json = json, auth = cls.__auth, **kwargs)
-        else:
-            cls.__resp = cls.session.post(url, headers = headers, data = data, json = json, auth = cls.__auth, catch_response = True, **kwargs)            
-        cls.__auth = None
-
-    @classmethod
-    def Download(cls, url, dst, stream = None, **kwargs):
-        ''' save response body/content/text to a file
-        :param url: download url
-        :param stream: True/False or None, if False or None, response body will be immediately download; if True, will be hung up untill the all data in Response.content is read.
-        :param dst: the full path or the full path file  
-        '''
-        if isinstance(cls.session,Session):
-            cls.__resp = cls.session.get(url,stream = stream, auth = cls.__auth, **kwargs)
-        else:
-            cls.__resp = cls.session.get(url,stream = stream, auth = cls.__auth, catch_response = True, **kwargs)
-        cls.__auth = None
-        
-        if os.path.isdir(dst):
-            f_abspath = os.path.join(dst, os.path.basename(url))
-        else:
-            f_abspath = dst
-        with open(f_abspath, 'wb') as fd:
-            if stream: 
-                for chunk in cls.__resp.iter_content():
-                    fd.write(chunk)
-            else:
-                fd.write(cls.__resp.text.encode(cls.__resp.encoding))   
-    
-    @classmethod
-    def Upload(cls,url, upload_files_params, data=None, **kwargs):
-        ''' upload files to server
-        @param url: upload url
-        @param upload_files_params:  dict type, format is 'alias_name: file_path'
-        @param data: dict type, formdata of upload files
-        @param kwargs: others paramter of requests.post
-        
-        e.g.
-            url = 'http://192.168.102.241:8008/dls/FileStorage/httpUploadFile'
-            upload_files_params = {
-                'pic1': r'C:\d_disk\auto\buffer\800x600.png',
-                'pic2': "",
-                'pic3': "",
-                'pic4': "",
-                'pic5': "",
-                'pic6': "",
-                'pic7': "",
-                'pic8': ""
-            }
-            data = {'unzip': 0, 'dirType': 1}
-            
-            Upload(url, upload_files_params, data, verify=False)
-        '''        
-        multiple_files = {}
-        for param_name, upload_file in upload_files_params.items():
-            if not os.path.isfile(upload_file):
-                multiple_files[param_name] = ("","")
-                continue
-            multiple_files[param_name] = (os.path.basename(upload_file), open(upload_file, 'rb'))
-        
-        if isinstance(cls.session,Session): 
-            cls.__resp = cls.session.post(url, data = data, files = multiple_files, auth = cls.__auth, **kwargs)
-        else:
-            cls.__resp = cls.session.post(url, data = data, files = multiple_files, auth = cls.__auth, catch_response = True, **kwargs)
-        cls.__auth = None 
-    
+    #### verify                
     
     @classmethod
     def VerifyContain(cls, strs):
-        if strs in cls.GetRespText():
+        if strs in cls.__trackinfo["response_body"]:
             return True
         else:
             return False
     
     @classmethod
-    def VerifyCode(cls, code):
-        try:
-            code = int(code)
-        except:
-            return False
-        
-        if cls.GetRespCode() == code:
+    def VerifyCode(cls, code):        
+        if cls.__trackinfo["status_code"] == code:
             return True
         else:
             return False
@@ -242,84 +294,5 @@ class WebHttp():
             return False if value == None else True
         else:
             return value == expect_value
+        
     
-    @classmethod
-    def LocustSuccess(cls):
-        ''' Report the response as successful, if session is locust'''
-        if not isinstance(cls.session,Session):
-            cls.__resp.success()
-    
-    @classmethod
-    def LocustFailure(cls,exc):
-        ''' Report the response as a failure, if session is locust'''
-        if not isinstance(cls.session,Session):
-            cls.__resp.failure(exc)
-                            
-    
-    @classmethod
-    def GetRespCode(cls):
-        ''' HTTP-code'''
-        return cls.__resp.status_code
-    
-    @classmethod
-    def GetRespText(cls):
-        ''' Content of the response, in unicode '''
-#         cls.__resp.encoding = requests.utils.get_encodings_from_content(cls.__resp.text)
-#         cls.__resp.encoding = cls.__resp.apparent_encoding
-        if isinstance(cls.session,Session):
-            cls.__resp.encoding = None
-        return cls.__resp.text
-    
-    @classmethod
-    def GetRespReason(cls):
-        '''Textual reason of responded HTTP Status, e.g. "Not Found" or "OK". '''
-        return cls.__resp.reason
-    
-    @classmethod
-    def GetRespCookie(cls):
-        ''' will print the cookie dict '''
-        return dict(cls.__resp.cookies.items())
-
-    @classmethod
-    def GetRespHeaders(cls, name = None):
-        ''' response headers '''
-        if name:
-            return cls.__resp.headers.get(name)
-        return cls.__resp.headers
-    
-    @classmethod
-    def GetRespEncoding(cls):
-        ''' response encoding '''
-        return cls.__resp.encoding
-    
-    @classmethod
-    def GetRespContent(cls):
-        ''' Content of the response, in bytes '''
-        return cls.__resp.content
-    
-    @classmethod
-    def GetRespElapsed(cls):
-        ''' the time between sending request and the arrival of the response '''
-        return cls.__resp.elapsed
-    
-    @classmethod
-    def GetReqMethod(cls):
-        ''' request method'''
-        return cls.__resp.request.method
-     
-    @classmethod
-    def GetReqUrl(cls):
-        ''' request url'''
-        return cls.__resp.request.url
-    
-    @classmethod
-    def GetReqHeaders(cls, name = None):
-        ''' request headers '''
-        if name:
-            return cls.__resp.request.headers.get(name)
-        return cls.__resp.request.headers
-    
-    @classmethod
-    def GetReqData(cls):
-        ''' request body '''
-        return cls.__resp.request.body

@@ -36,11 +36,11 @@ class _Driver(Runner):
         tracer = self.tracers[fn]
         
         _Actions = ModuleUtils.get_imported_module("httpdriver.actions")
-        _Actions.WebHttp.session = fn_driver
-        parser.bind_functions(ModuleUtils.get_callable_class_method_names(_Actions.WebHttp))
+        _Actions.Request.session = fn_driver
+        parser.bind_functions(ModuleUtils.get_callable_class_method_names(_Actions.Request))
         
-        _Actions.WebHttp.glob.update(variables)
-        parser.update_binded_variables(_Actions.WebHttp.glob)
+        _Actions.Request.glob.update(variables)
+        parser.update_binded_variables(_Actions.Request.glob)
          
         case_name = FileSystemUtils.get_legal_filename(parser.eval_content_with_bind_actions(testcase_dict["name"]))
         tracer.start(self.proj_info["module"], case_name, testcase_dict.get("responsible","Administrator"), testcase_dict.get("tester","Administrator"))        
@@ -50,12 +50,12 @@ class _Driver(Runner):
             tracer.normal("**** bind glob variables")                
             glob_vars = parser.eval_content_with_bind_actions(testcase_dict.get("glob_var",{}))
             tracer.step("set global variables: {}".format(glob_vars))                
-            _Actions.WebHttp.glob.update(glob_vars)            
+            _Actions.Request.glob.update(glob_vars)            
              
             tracer.normal("**** bind glob regular expression")
             globregx = {k: re.compile(v) for k,v in testcase_dict.get("glob_regx",{}).items()}
             tracer.step("set global regular: {}".format(globregx))            
-            _Actions.WebHttp.glob.update(globregx)
+            _Actions.Request.glob.update(globregx)
                              
             tracer.normal("**** precommand")
             precommand = testcase_dict.get("pre_command",[])    
@@ -74,22 +74,19 @@ class _Driver(Runner):
                 
                 url     = parsered_requests.pop("url")                                                             
                 method  = parsered_requests.pop("method")
-                if not method.upper() in ("GET", "POST"):
+                if not method.capitalize() in ("Get", "Post"):
                     raise FunctionNotFound("Not found method('%s')" %method)
                 
-                tracer.step("requests url: \n\t{} {}".format(method.upper(), url))
-                req = parser.get_bind_function(method.upper())
+                tracer.step("requests url: \n\t{} {}".format(method.capitalize(), url))
+                req = parser.get_bind_function(method.capitalize())
                 
                 for k,v in parsered_requests.items():
                     tracer.step("requests {} -> \n\t{}".format(k, json.dumps(v, indent=4, separators=(',', ': '))))
                 
-                req(url, **parsered_requests)
-             
-                resp_headers = parser.get_bind_function("GetRespHeaders")()
-                tracer.step("response headers: \n\t{}".format(json.dumps(dict(resp_headers), indent=4, separators=(',', ': '))))
-             
-                resp_text = parser.get_bind_function("GetRespText")()
-                tracer.step(u"response body: \n\t{}".format(resp_text))
+                resp = req(url, **parsered_requests)    
+                         
+                tracer.step("response headers: \n\t{}".format(json.dumps(dict(resp["response_headers"]), indent=4, separators=(',', ': '))))             
+                tracer.step(u"response body: \n\t{}".format(resp["response_body"]))
             
             tracer.normal("**** postcommand")
             postcommand = testcase_dict.get("post_command", [])        
@@ -104,13 +101,7 @@ class _Driver(Runner):
                 if r == False:
                     tracer.fail(u"{} --> {}".format(v,r))
                 else:
-                    tracer.ok(u"{} --> {}".format(v,r))
-            
-            if False in result:
-                idx = result.index(False)
-                parser.get_bind_function("LocustFailure")(u"{} --> {}".format(verify[idx],False))
-            else:
-                parser.get_bind_function("LocustSuccess")()
+                    tracer.ok(u"{} --> {}".format(v,r))            
                         
         except KeyError as e:
             tracer.error("Can't find key[%s] in your testcase." %e)
