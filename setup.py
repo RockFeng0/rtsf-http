@@ -82,6 +82,8 @@ setup(
         name = __about__.__title__,
         version=__about__.__version__,        
         description=__about__.__short_desc__,
+        long_description=long_description,
+        long_description_content_type='text/markdown',
         author=__about__.__autor__,
         author_email=__about__.__author_email__,
         url=__about__.HOME_PAGE,
