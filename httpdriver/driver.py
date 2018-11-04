@@ -21,6 +21,7 @@ Provide a function for the automation test
 
 import re,json
 from requests import Session
+from markupsafe import Markup
 from rtsf.p_executer import Runner
 from rtsf.p_common import CommonUtils,ModuleUtils,FileSystemUtils
 from rtsf.p_exception import FunctionNotFound,VariableNotFound
@@ -91,7 +92,7 @@ class _Driver(Runner):
                 resp_info     = req_track_obj.trackinfo
                          
                 tracer.step("response headers: \n\t{}".format(json.dumps(dict(resp_info["response_headers"]), indent=4, separators=(',', ': '))))             
-                tracer.step(u"response body: \n\t<pre>{}</pre>".format(resp_info["response_body"]))
+                tracer.step(u"response body: \n\t{}".format(Markup(resp_info["response_body"]).unescape()))
             
             tracer.normal("**** postcommand")
             postcommand = testcase_dict.get("post_command", [])        
