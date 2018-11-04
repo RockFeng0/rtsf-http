@@ -22,6 +22,7 @@ Provide a function for the automation test
 import os,re,json,ast
 from base64 import b64encode
 from jinja2 import escape
+from markupsafe import Markup
 from collections import Iterable
 from rtsf.p_compat import basestring, bytes, numeric_types
 from requests.structures import CaseInsensitiveDict
@@ -230,7 +231,7 @@ class Request(object):
             e.g.
             DyStrData("a",re.compile('123'))
         '''
-        text = cls.__trackinfo["response_body"]
+        text = Markup(cls.__trackinfo["response_body"]).unescape()
         
         if not text:
             return
@@ -261,7 +262,7 @@ class Request(object):
             sequence3 = "f.g.2" # -> 9
             sequence4 = "h.0.j" # -> 11
         '''
-        text = cls.__trackinfo["response_body"]
+        text = Markup(cls.__trackinfo["response_body"]).unescape()
         if not text:
             return
                 
@@ -283,7 +284,8 @@ class Request(object):
     
     @classmethod
     def VerifyContain(cls, strs):
-        if strs in cls.__trackinfo["response_body"]:
+        text = Markup(cls.__trackinfo["response_body"]).unescape()
+        if strs in text:
             return True
         else:
             return False

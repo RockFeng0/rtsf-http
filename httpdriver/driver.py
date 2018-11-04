@@ -91,7 +91,7 @@ class _Driver(Runner):
                 resp_info     = req_track_obj.trackinfo
                          
                 tracer.step("response headers: \n\t{}".format(json.dumps(dict(resp_info["response_headers"]), indent=4, separators=(',', ': '))))             
-                tracer.step(u"response body: \n\t{}".format(resp_info["response_body"]))
+                tracer.step(u"response body: \n\t<pre>{}</pre>".format(resp_info["response_body"]))
             
             tracer.normal("**** postcommand")
             postcommand = testcase_dict.get("post_command", [])        
