@@ -23,7 +23,7 @@ import re,json
 from requests import Session
 from markupsafe import Markup
 from rtsf.p_executer import Runner
-from rtsf.p_common import CommonUtils,ModuleUtils,FileSystemUtils
+from rtsf.p_common import CommonUtils,ModuleUtils
 from rtsf.p_exception import FunctionNotFound,VariableNotFound
 
 class _Driver(Runner):      
@@ -45,8 +45,8 @@ class _Driver(Runner):
         
         _Actions.Request.glob.update(variables)
         parser.update_binded_variables(_Actions.Request.glob)
-         
-        case_name = FileSystemUtils.get_legal_filename(parser.eval_content_with_bind_actions(testcase_dict["name"]))
+        
+        case_name = parser.eval_content_with_bind_actions(testcase_dict["name"])
         tracer.start(self.proj_info["module"], case_name, testcase_dict.get("responsible","Administrator"), testcase_dict.get("tester","Administrator"))        
         tracer.section(case_name)
          

@@ -81,11 +81,11 @@ class TestTestRunner(unittest.TestCase):
         
 if __name__ == "__main__":
     #logger.setup_logger("debug")
-    unittest.main()
-#     suite = unittest.TestSuite()
-#     suite.addTest(TestTestRunner("test_Driver_case_model"))
-#     runner = unittest.TextTestRunner(verbosity=2)
-#     runner.run(suite)
+#     unittest.main()
+    suite = unittest.TestSuite()
+    suite.addTest(TestTestRunner("test_Driver_data_driver_case"))
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(suite)
     
     
 
