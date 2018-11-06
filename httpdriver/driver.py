@@ -138,7 +138,7 @@ class HttpDriver(_Driver):
         _ = resp_obj
         for v, r in result:
             msg = u"{} --> {}".format(v,r)
-            func = trace_obj.fail if r == False else trace_obj.ok
+            func = trace_obj.ok if r == True else trace_obj.fail
             func(msg)
                 
 class LocustDriver(_Driver):
