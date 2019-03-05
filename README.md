@@ -8,78 +8,250 @@
 pip install rtsf-http
  
 
-## 编写测试用例，模板基于rtsf
+## 简单介绍
 
-> 变量引用-> $var    关键字(函数)引用-> ${function}
+1. 基本使用，参见rtsf项目的 使用入门
+2. rtsf-http 遵循在rtsf项目高阶用法的约定
+3. 实际上，rtsf-http仅仅做了两件事情
+    - 设计http(s)接口自动化测试yaml用例，并重写Runner.run_test的执行规则
+    - 设计常用http(s)关键字，如post,get, upload, download等
 
-- 常量的定义， glob_var 和  glob_regx
-- 模板常用的关键字，参见 [rtsf](https://github.com/RockFeng0/rtsf)介绍
+[查看rtsf项目用法](https://github.com/RockFeng0/rtsf)
 
-### 基本用例
 
-基本用例，是指没有分层的情况下，简单的测试用例
+## 用法介绍
+
+安装完成后，有两个命令用于执行yaml测试用例，它们的效果是一样的: hdriver 或者   httpdriver
+  
 
 ```
-# 示例如   test.yml：
-- project:
-    # 模板遵循rtsf约定
-    name: xxx系统
-    module: 登陆模块-功能测试
+# 简单用法
+hdriver c:\xxx\xxx\test.yaml
+
+# 设置日志级别和路径
+hdriver c:\xxx\xxx\test.yaml --log-file c:\xxx\xxx\test.log --log-level debug
+
+```
+
+用法，实例如下:
+![hdriver-command.png](https://raw.githubusercontent.com/RockFeng0/img-folder/master/rtsf-http-img/hdriver-command.png)
+
+## rtsf-http的约定
+依据rtsf的yaml约定模板，我们在steps中，为rtsf-http约定了一个规则，以便识别为 http的接口自动化测试， 如下
+
+```
+steps:
+    - request:
+        url: 
+        method:
+        params:
+        data:
+        json:
+        files:
+        auth:
+        ...
+```
+>  url和method必填，其他参数遵循requests
+
+## rtsf-http常用的yaml函数
+
+```
+# 常在glob_var关键字中使用的， 如  username: ${GetVar("username")}  
+GetVar(name)                                # -> 从变量空间中，获取变量的值
+PopVar(name)                                # -> 从变量空间中，获取变量的值，然后删除该变量
+GetBasicAuth(username,password)             # -> 获取basic加密，用于传递 requests的auth参数
+GetDigestAuth(username,password)            # -> 获取digest加密，用于传递 requests的auth参数 
+
+# 常在precommand关键字中使用的， 参数化数据
+SetVar(name, value)                         # -> 设置变量至变量空间，
+
+# 常在postcommand关键字中使用的， 动态参数化数据
+DyStrData(name,regx,index=0)                # -> resp.text or resp.content 返回html/xml等格式时， 依据正则regx和下标index，保存至变量name
+DyJsonData(name,sequence)                   # -> resp.text or resp.content 返回json格式时，依据sequence，保存至变量name
+
+# 常在verify关键字中使用的， 验证结果
+VerifyContain(strs)                         #  验证相应的body中，包含字符串
+VerifyCode(code)                            #  验证响应码为code
+VerifyVar(name, expect_value=None)          #  验证变量的值是否为期望值；如果期望值为None，则仅验证变量是否被赋值
+
+
+# 下载的请求示例，yaml编写：
+steps:
+    - request:
+        url: https://www.baidu.com          
+        method: get
+        download_dir: c:\downloads
+        
+        
+# 上传的请求示例, yaml编写
+steps:
+    - request:
+        url: http://127.0.0.1/filestorage/httpUploadFile
+        method: post
+        files:
+            pic1: C:/d_disk/auto/buffer/800x600.png
+            pic2: 
+            pic3:
+        data: 
+            dirType: 1
+            unzip: 0        
+
+```
+
+## 自定义，yaml函数和变量
+
+ 在case同级目录中，创建  preference.py, 该文件所定义的 变量、函数，可以被动态加载和引用， 具体参见rtsf的介绍
+
+
+## 简单使用
+
+依据rtsf和rtsf-http的约定， 做了几个接口测试的示例
+
+
+### Get请求
+
+1. 请求百度首页，校验title
+ 
+```
+# example_1.yml
+
+- project:    
+    name: demo_rtsf_test
+    module: demo_test_baidu
     
-- case:
-    id: ATP-1
-    desc: 打开百度
-    
-    name: demo_baidu1
-    glob_var:
-        passwd: 123@Qwe
+- case:    
+    name: www.baidu.com    
     glob_regx:
-        rex_name: 'id=su value=([\w\-\.\+/=]+)'
-    pre_command: 
-        - ${SetVar(username, luokefeng)}
-        - ${SetVar(password, $passwd)}
+        rex_name: 'id=su value=([\w\-\.\+/=]+)'    
     steps:
         - request:
-            url: https://www.baidu.com          
+            url: https://www.baidu.com 
             method: GET
     post_command:
         - ${DyStrData(baidu_name,$rex_name)}
     verify:
         - ${VerifyCode(200)}
         - ${VerifyVar(baidu_name, 百度一下)}
-        - ${VerifyVar(baidu_name, 123)}
-
 ```
 
-### 数据驱动用例
-数据驱动，根据rtsf的介绍，需要再project中,添加data关键字
+2. 执行命令，运行用例
 
 ```
-# 示例如 data_driver.yaml
-- project:
-    name: xxx项目
-    module: xxx项目-首页功能-数据驱动
-    data:
-        - csv: devices.csv
-          by: Random
-        
-- case:
-    name: /baidu_test_$device
+hdriver example_1.yml
+```
+
+3. 查看报告
+![example_1.png](https://raw.githubusercontent.com/RockFeng0/img-folder/master/rtsf-http-img/example_1.png)
+
+
+### Post请求
+
+1. Basic或者Digest加密认证，登录请求。
+
+```
+# example_1.yml
+
+- project:    
+    name: demo_rtsf_test
+    module: demo_test_login
+    
+- case:    
+    name: basic_auth_login    
+    glob_var:
+        basic_auth: ${GetBasicAuth(username, password)}
+        digest_auth: ${GetDigestAuth(username, password)}
     steps:
         - request:
-            url: https://www.baidu.com
-            method: GET
+            url: http://xxx.xxx.xxx/login
+            method: POST
+            auth: $basic_auth
     verify:
         - ${VerifyCode(200)}
 ```
 
-data相关的具体使用方法，可以参见 [rtsf](https://github.com/RockFeng0/rtsf)介绍
+2. 常规的登录请求示例
+
+```
+# example_2.yml
+
+- project:
+    name: xxx登录
+    module: 登录
+    
+- case:
+    name: /login?service=https://xxx.xxx.xx/xxx
+    glob_var:
+        username: luokefeng
+        password: 123321
+    steps:
+        - request:
+            url: https://www.xxx.com/login?service=https://xxx.xxx.xx/xxx
+            method: POST
+            params: 
+                username: $username
+                password: $password
+                mobile: 14512341234
+                verifycode: 123456
+                _eventId: submit
+                submit: 
+                _rememberMe: on
+    verify:
+        - ${VerifyContain(xxx后台)}
+```
+
+### 请求过程中的动态参数化
+
+比如 api_1 请求返回的结果中，记录一个 xxx_id，给 api_2接口使用
+
+```
+# example_3.yml
+
+- project:
+    name: xxx
+    module: xxx
+    
+- case:
+    name: /api_1?service=https://xxx.xxx.xx/xxx
+    glob_var:
+        data_contract_id: 23423543
+        workerid: 123321
+    steps:
+        - request:
+            url: https://xxx.xxx.xxx/api_1?service=https://xxx.xxx.xx/xxx
+            method: POST
+            params:                
+                unsignReason: 2
+                unsignDetailReason: 21
+                unsignStage: 3
+                blackReason: 主动申请
+                contractId: $data_contract_id
+                workerId: $workerid
+    post_command:
+        - ${DyJsonData(xxx_id, data.contractId)}
+    verify:
+        - ${VerifyCode(200)}
+        - ${VerifyContain(成功)}
+
+- case:
+    name: /api_2?service=https://xxx.xxx.xx/xxx
+    steps:
+        - request:
+            url: https://xxx.xxx.xxx/api_2
+            method: GET
+            params:
+                contract_id: $xxx_id
+    verify:
+        - ${VerifyCode(200)}
+        - ${VerifyContain(成功)}
+```
+> 动态参数化，提供了两个yaml函数:  DyStrData 和 DyJsonData
 
 
-### 分层用例
+## 数据驱动和分层用例
 
-- 分层用例，是指模块功能测试的时候，对测试用例进行分层，最小的单元为api，其次为suite，最后组成用例
-- 其存放路径、编写规则等，详见 [rtsf](https://github.com/RockFeng0/rtsf)相关介绍
+在 [rtsf](https://github.com/RockFeng0/rtsf)项目中，已经有了详细的介绍
+
+### 分层实例场景
 
 示例场景1:  打开百度，搜索hello，打开bing
      
@@ -123,6 +295,7 @@ data相关的具体使用方法，可以参见 [rtsf](https://github.com/RockFen
 
 ```
 # suite_test1.yaml
+
 - project:
     def: suite1($keyword)
     
@@ -144,6 +317,7 @@ data相关的具体使用方法，可以参见 [rtsf](https://github.com/RockFen
 
 ```
 # suite_test2.yaml
+
 - project:
     def: suite2($keyword,$password,$username)
 
@@ -165,7 +339,8 @@ data相关的具体使用方法，可以参见 [rtsf](https://github.com/RockFen
 3. 最后测试用例排列 suite1 & suite2  
 
 ```
-# 测试用例 test_case.yaml：
+# test_case.yaml
+
 - project:
     name: 分层用例
     module: 示例场景
@@ -183,81 +358,7 @@ data相关的具体使用方法，可以参见 [rtsf](https://github.com/RockFen
 4. 执行
     hdriver.exe test_case.yaml
 
-## 执行测试用例
 
-> 执行有两个命令,  hdriver 或者   httpdriver
-
-```
-usage: hdriver [-h] [--log-level LOG_LEVEL] [--log-file LOG_FILE] case_file
-usage: httpdriver [-h] [--log-level LOG_LEVEL] [--log-file LOG_FILE] case_file
-```
-
-![hdriver-command.png](https://raw.githubusercontent.com/RockFeng0/img-folder/master/rtsf-http-img/hdriver-command.png)
-
-## 测试报告及日志
-
-> 执行结束后，测试用例所在路径，就是report生成的路径
-
-
-## 基于rtsf，封装的关键字(内置函数)
-
-
-```
-# glob_var  通常function获取值后，复制给变量控件
-GetVar(name)                                # -> 从变量空间中，获取变量的值
-PopVar(name)                                # -> 从变量空间中，获取变量的值，然后删除该变量
-GetBasicAuth(username,password)             # -> 获取basic加密，用于传递 requests的auth参数
-GetDigestAuth(username,password)            # -> 获取digest加密，用于传递 requests的auth参数 
-
-# precommand 通常用于定义一些变量，用于传参
-SetVar(name, value)                         # -> 设置变量至变量空间，
-
-# postcommand 通常用于动态定义一些变量，用于验证
-DyStrData(name,regx,index=0)                # -> resp.text or resp.content 返回html/xml等格式时， 依据正则regx和下标index，保存至变量name
-DyJsonData(name,sequence)                   # -> resp.text or resp.content 返回json格式时，依据sequence，保存至变量name
-
-# verify
-VerifyContain(strs)                         #  验证相应的body中，包含字符串
-VerifyCode(code)                            #  验证响应码为code
-VerifyVar(name, expect_value=None)          #  验证变量的值是否为期望值；如果期望值为None，则仅验证变量是否被赋值
-
-
-# 下载的请求示例，yaml编写：
-steps:
-    - request:
-        url: https://www.baidu.com          
-        method: get
-        download_dir: c:\downloads
-        
-        
-# 上传的请求示例, yaml编写
-steps:
-    - request:
-        url: http://127.0.0.1/filestorage/httpUploadFile
-        method: post
-        files:
-            pic1: C:/d_disk/auto/buffer/800x600.png
-            pic2: 
-            pic3:
-        data: 
-            dirType: 1
-            unzip: 0        
-
-```
-
-## 自定义，关键字(函数、变量)
-> 在case同级目录中，创建  preference.py, 该文件所定义的 变量、函数，可以被动态加载和引用
-
-执行用例的时候，可以使用 变量引用 或者关键字引用的方法，调用，自定义的函数和变量
-
-```
-# preference.py 示例
-
-test_var = "hello rtsf."
-def test_func():
-    return "nihao rtsf."
- 
-```
 
 
 
