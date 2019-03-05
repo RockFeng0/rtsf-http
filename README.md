@@ -14,7 +14,7 @@ pip install rtsf-http
 2. rtsf-http 遵循在rtsf项目高阶用法的约定
 3. 实际上，rtsf-http仅仅做了两件事情
     - 设计http(s)接口自动化测试yaml用例，并重写Runner.run_test的执行规则
-    - 设计常用http(s)关键字，如post,get, upload, download等
+    - 封装常用requests为用例提供yaml函数
 
 [查看rtsf项目用法](https://github.com/RockFeng0/rtsf)
 
