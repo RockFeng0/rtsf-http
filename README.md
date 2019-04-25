@@ -56,14 +56,24 @@ steps:
 ## rtsf-http常用的yaml函数
 
 ```
-# 常在glob_var关键字中使用的， 如  username: ${GetVar("username")}  
-GetVar(name)                                # -> 从变量空间中，获取变量的值
-PopVar(name)                                # -> 从变量空间中，获取变量的值，然后删除该变量
+# 常在glob_var关键字中使用的
+GetVar(name)                                # -> 从变量空间中，获取变量的值，不建议使用。
+PopVar(name)                                # -> 从变量空间中，获取变量的值，然后删除该变量， 不建议使用。
 GetBasicAuth(username,password)             # -> 获取basic加密，用于传递 requests的auth参数
-GetDigestAuth(username,password)            # -> 获取digest加密，用于传递 requests的auth参数 
+GetDigestAuth(username,password)            # -> 获取digest加密，用于传递 requests的auth参数
 
-# 常在precommand关键字中使用的， 参数化数据
-SetVar(name, value)                         # -> 设置变量至变量空间，
+# 常在precommand关键字中使用的， 参数化数据，不建议使用
+SetVar(name, value)                         # -> 设置变量至变量空间
+
+# 定义变量建议使用 glob_var和glob_regx, 详细说明参见rtsf项目。 yaml示例如:
+glob_var:
+        username: luokefeng
+        password: 123456
+
+glob_regx:
+        rex_lt: 'name="lt" value="([\w\-\.\+/=]+)'
+        rex_execution: 'name="execution" value="([\w\-\.\+/=]+)'
+
 
 # 常在postcommand关键字中使用的， 动态参数化数据
 DyStrData(name,regx,index=0)                # -> resp.text or resp.content 返回html/xml等格式时， 依据正则regx和下标index，保存至变量name
