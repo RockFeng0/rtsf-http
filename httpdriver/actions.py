@@ -300,10 +300,13 @@ class Request(object):
     @classmethod
     def VerifyVar(cls, name, expect_value=None):
         value = cls.glob.get(name)
-        
+#         print(type(value),value)
+#         print(type(expect_value),expect_value)
         if expect_value == None:
             return False if value == None else True
-        else:
+        elif type(value) == type(expect_value):            
             return value == expect_value
+        else:
+            return str(value) == str(expect_value)
         
     
