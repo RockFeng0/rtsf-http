@@ -28,6 +28,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with io.open("README.md", encoding='utf-8') as f:
     long_description = f.read()
 
+
 class UploadCommand(Command):
     """ Build and publish this package.
         Support setup.py upload. Copied from requests_html.
