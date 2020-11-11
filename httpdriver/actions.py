@@ -1,6 +1,6 @@
 #! python3
 # -*- encoding: utf-8 -*-
-'''
+"""
 Current module: httpdriver.actions
 
 Rough version history:
@@ -16,10 +16,13 @@ v1.0    Original version to use
 
 Provide a function for the automation test
 
-'''
+"""
 
 
-import os,re,json,ast
+import os
+import re
+import json
+import ast
 from base64 import b64encode
 from jinja2 import escape
 from markupsafe import Markup
@@ -28,6 +31,7 @@ from rtsf.p_compat import basestring, bytes, numeric_types
 from requests.structures import CaseInsensitiveDict
 from requests.auth import HTTPBasicAuth,HTTPDigestAuth
 
+
 def _parse_string_value(str_value):
     try:
         return ast.literal_eval(str_value)
@@ -35,7 +39,8 @@ def _parse_string_value(str_value):
         return str_value
     except SyntaxError:
         return str_value
-        
+
+
 class RequestTrackInfo(object):
     
     def __init__(self,resp_object):
@@ -71,7 +76,7 @@ class RequestTrackInfo(object):
         return self.__track_info
         
     def __stringify_body(self, request_or_response):
-        ''' this method reference from httprunner '''
+        """ this method reference from httprunner """
         headers = self.__track_info['{}_headers'.format(request_or_response)]
         body = self.__track_info.get('{}_body'.format(request_or_response))
     
@@ -101,6 +106,7 @@ class RequestTrackInfo(object):
     
         self.__track_info['{}_body'.format(request_or_response)] = body
 
+
 class Request(object):
     session = None
     glob = {}
@@ -113,7 +119,7 @@ class Request(object):
                "h":[{"i":10,"j":11},{"k":12}]
                }
     
-    #### glob_var
+    # glob_var
     @staticmethod
     def GetBasicAuth(username,password):
         ''' auth: basic encrypt to base64 '''
@@ -285,7 +291,7 @@ class Request(object):
     @classmethod
     def VerifyContain(cls, strs):
         text = Markup(cls.__trackinfo["response_body"]).unescape()
-        if strs in text:
+        if str(strs) in text:
             return True
         else:
             return False
@@ -308,5 +314,3 @@ class Request(object):
             return value == expect_value
         else:
             return str(value) == str(expect_value)
-        
-    
